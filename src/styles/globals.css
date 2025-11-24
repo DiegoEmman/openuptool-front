@@ -1,0 +1,9 @@
+/* Estilos globales y tokens (variables CSS, reset, tipografía) */
+:root {
+    --color-primary: #2563eb;
+}
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    margin: 0;
+}
