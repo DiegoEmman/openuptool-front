@@ -1,32 +1,43 @@
-import { nanoid } from 'nanoid';
-import type { CreateIterationInput, Iteration } from '../types/iteration';
-
-const iterations: Iteration[] = [];
+import type { CreateIterationInput, Iteration } from "../types/iteration";
+import { httpClient } from "./api/httpClient";
 
 export const iterationService = {
-    getIterations(projectId: string): Iteration[] {
-        return iterations.filter((i) => i.projectId === projectId);
+    async getIterations(projectId: string): Promise<Iteration[]> {
+        return httpClient<Iteration[]>(`/projects/${projectId}/iterations`);
     },
-    createIteration(projectId: string, input: CreateIterationInput): Iteration {
-        const iteration: Iteration = {
-            id: nanoid(),
-            projectId,
-            name: input.name.trim(),
-            objective: input.objective?.trim(),
-            phase: input.phase,
-            startDate: input.startDate,
-            endDate: input.endDate,
-            status: 'Planeada',
-        };
-        iterations.push(iteration);
-        return iteration;
+
+    async createIteration(
+        projectId: string,
+        input: CreateIterationInput
+    ): Promise<Iteration> {
+        return httpClient<Iteration>(`/projects/${projectId}/iterations`, {
+            method: "POST",
+            body: JSON.stringify({
+                name: input.name.trim(),
+                objective: input.objective?.trim(),
+                phase: input.phase,
+                startDate: input.startDate,
+                endDate: input.endDate,
+            }),
+        });
     },
-    updateStatus(id: string, status: Iteration['status']): Iteration | undefined {
-        const idx = iterations.findIndex((i) => i.id === id);
-        if (idx === -1) return undefined;
-        iterations[idx] = { ...iterations[idx], status };
-        return iterations[idx];
+
+    async updateStatus(
+        projectId: string,
+        id: string,
+        status: Iteration["status"]
+    ): Promise<Iteration | undefined> {
+        try {
+            return await httpClient<Iteration>(
+                `/projects/${projectId}/iterations/${id}/status`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({ status }),
+                }
+            );
+        } catch (error) {
+            console.error("Error updating iteration status:", error);
+            return undefined;
+        }
     },
 };
-
-// TODO: Persistir en backend.

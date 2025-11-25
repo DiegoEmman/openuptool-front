@@ -1,10 +1,22 @@
-import React, { useState } from 'react';
-import { Box, Button, Grid, MenuItem, TextField, Typography } from '@mui/material';
-import type { CreateIterationInput } from '../../types/iteration';
-import type { PhaseCode } from '../../types/artifact';
-import { iterationService } from '../../services/iterationService';
+import React, { useState } from "react";
+import {
+    Box,
+    Button,
+    Grid,
+    MenuItem,
+    TextField,
+    Typography,
+} from "@mui/material";
+import type { CreateIterationInput } from "../../types/iteration";
+import type { PhaseCode } from "../../types/artifact";
+import { iterationService } from "../../services/iterationService";
 
-const PHASES: PhaseCode[] = ['INCEPTION', 'ELABORATION', 'CONSTRUCTION', 'TRANSITION'];
+const PHASES: PhaseCode[] = [
+    "INCEPTION",
+    "ELABORATION",
+    "CONSTRUCTION",
+    "TRANSITION",
+];
 
 interface Props {
     projectId: string;
@@ -13,17 +25,22 @@ interface Props {
 }
 export function IterationForm({ projectId, onCreated, onCancel }: Props) {
     const [form, setForm] = useState<CreateIterationInput>({
-        name: '',
-        objective: '',
-        phase: 'INCEPTION',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date().toISOString().split('T')[0],
+        name: "",
+        objective: "",
+        phase: "INCEPTION",
+        startDate: new Date().toISOString().split("T")[0],
+        endDate: new Date().toISOString().split("T")[0],
     });
 
-    function submit() {
+    async function submit() {
         if (!form.name.trim()) return;
-        iterationService.createIteration(projectId, form);
-        onCreated();
+        try {
+            await iterationService.createIteration(projectId, form);
+            onCreated();
+        } catch (error) {
+            console.error("Error creating iteration:", error);
+            alert("Error al crear la iteración");
+        }
     }
 
     return (
@@ -37,7 +54,9 @@ export function IterationForm({ projectId, onCreated, onCancel }: Props) {
                         label="Nombre"
                         fullWidth
                         value={form.name}
-                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                        onChange={(e) =>
+                            setForm((f) => ({ ...f, name: e.target.value }))
+                        }
                     />
                 </Grid>
                 <Grid item xs={12} md={4}>
@@ -47,7 +66,10 @@ export function IterationForm({ projectId, onCreated, onCancel }: Props) {
                         fullWidth
                         value={form.phase}
                         onChange={(e) =>
-                            setForm((f) => ({ ...f, phase: e.target.value as PhaseCode }))
+                            setForm((f) => ({
+                                ...f,
+                                phase: e.target.value as PhaseCode,
+                            }))
                         }
                     >
                         {PHASES.map((p) => (
@@ -62,7 +84,12 @@ export function IterationForm({ projectId, onCreated, onCancel }: Props) {
                         label="Objetivo"
                         fullWidth
                         value={form.objective}
-                        onChange={(e) => setForm((f) => ({ ...f, objective: e.target.value }))}
+                        onChange={(e) =>
+                            setForm((f) => ({
+                                ...f,
+                                objective: e.target.value,
+                            }))
+                        }
                     />
                 </Grid>
                 <Grid item xs={12} md={3}>
@@ -72,7 +99,12 @@ export function IterationForm({ projectId, onCreated, onCancel }: Props) {
                         InputLabelProps={{ shrink: true }}
                         fullWidth
                         value={form.startDate}
-                        onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
+                        onChange={(e) =>
+                            setForm((f) => ({
+                                ...f,
+                                startDate: e.target.value,
+                            }))
+                        }
                     />
                 </Grid>
                 <Grid item xs={12} md={3}>
@@ -82,7 +114,9 @@ export function IterationForm({ projectId, onCreated, onCancel }: Props) {
                         InputLabelProps={{ shrink: true }}
                         fullWidth
                         value={form.endDate}
-                        onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
+                        onChange={(e) =>
+                            setForm((f) => ({ ...f, endDate: e.target.value }))
+                        }
                     />
                 </Grid>
                 <Grid item xs={12}>

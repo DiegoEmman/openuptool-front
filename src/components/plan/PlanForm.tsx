@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
-import { Box, Button, Grid, TextField, Typography } from '@mui/material';
-import { planService } from '../../services/planService';
-import type { CreateInitialPlanInput, PhaseScheduleItem } from '../../types/plan';
+import React, { useState } from "react";
+import { Box, Button, Grid, TextField, Typography } from "@mui/material";
+import { planService } from "../../services/planService";
+import type {
+    CreateInitialPlanInput,
+    PhaseScheduleItem,
+} from "../../types/plan";
 
 const DEFAULT_PHASES: PhaseScheduleItem[] = [
     {
-        phaseName: 'INCEPTION',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date().toISOString().split('T')[0],
+        phaseName: "INCEPTION",
+        startDate: new Date().toISOString().split("T")[0],
+        endDate: new Date().toISOString().split("T")[0],
     },
-    { phaseName: 'ELABORATION', startDate: '', endDate: '' },
-    { phaseName: 'CONSTRUCTION', startDate: '', endDate: '' },
-    { phaseName: 'TRANSITION', startDate: '', endDate: '' },
+    { phaseName: "ELABORATION", startDate: "", endDate: "" },
+    { phaseName: "CONSTRUCTION", startDate: "", endDate: "" },
+    { phaseName: "TRANSITION", startDate: "", endDate: "" },
 ];
 
 interface Props {
@@ -21,29 +24,44 @@ interface Props {
 }
 
 export function PlanForm({ projectId, onCreated, onCancel }: Props) {
-    const [objectives, setObjectives] = useState('');
-    const [scope, setScope] = useState('');
-    const [observations, setObservations] = useState('');
-    const [schedule, setSchedule] = useState<PhaseScheduleItem[]>(DEFAULT_PHASES);
+    const [objectives, setObjectives] = useState("");
+    const [scope, setScope] = useState("");
+    const [observations, setObservations] = useState("");
+    const [schedule, setSchedule] =
+        useState<PhaseScheduleItem[]>(DEFAULT_PHASES);
     const [milestones, setMilestones] = useState<
         { name: string; date: string; description?: string }[]
     >([]);
-    const [msDraft, setMsDraft] = useState({ name: '', date: '', description: '' });
+    const [msDraft, setMsDraft] = useState({
+        name: "",
+        date: "",
+        description: "",
+    });
 
-    function updatePhase(idx: number, field: keyof PhaseScheduleItem, value: string) {
-        setSchedule((s) => s.map((p, i) => (i === idx ? { ...p, [field]: value } : p)));
+    function updatePhase(
+        idx: number,
+        field: keyof PhaseScheduleItem,
+        value: string
+    ) {
+        setSchedule((s) =>
+            s.map((p, i) => (i === idx ? { ...p, [field]: value } : p))
+        );
     }
 
     function addMilestone() {
         if (!msDraft.name || !msDraft.date) return;
         setMilestones((m) => [
             ...m,
-            { name: msDraft.name, date: msDraft.date, description: msDraft.description },
+            {
+                name: msDraft.name,
+                date: msDraft.date,
+                description: msDraft.description,
+            },
         ]);
-        setMsDraft({ name: '', date: '', description: '' });
+        setMsDraft({ name: "", date: "", description: "" });
     }
 
-    function submit() {
+    async function submit() {
         const input: CreateInitialPlanInput = {
             objectives,
             scope,
@@ -55,8 +73,18 @@ export function PlanForm({ projectId, onCreated, onCancel }: Props) {
                 description: m.description,
             })),
         };
-        planService.createInitialPlan(projectId, input);
-        onCreated();
+        try {
+            await planService.createInitialPlan(projectId, input);
+            onCreated();
+        } catch (error) {
+            console.error("Error creating plan:", error);
+            alert(
+                "Error al crear el plan: " +
+                    (error instanceof Error
+                        ? error.message
+                        : "Error desconocido")
+            );
+        }
     }
 
     return (
@@ -95,9 +123,13 @@ export function PlanForm({ projectId, onCreated, onCancel }: Props) {
                                 <TextField
                                     label="Responsable"
                                     fullWidth
-                                    value={p.responsible || ''}
+                                    value={p.responsible || ""}
                                     onChange={(e) =>
-                                        updatePhase(idx, 'responsible', e.target.value)
+                                        updatePhase(
+                                            idx,
+                                            "responsible",
+                                            e.target.value
+                                        )
                                     }
                                     placeholder="Nombre del responsable de la fase"
                                 />
@@ -109,7 +141,13 @@ export function PlanForm({ projectId, onCreated, onCancel }: Props) {
                                     InputLabelProps={{ shrink: true }}
                                     fullWidth
                                     value={p.startDate}
-                                    onChange={(e) => updatePhase(idx, 'startDate', e.target.value)}
+                                    onChange={(e) =>
+                                        updatePhase(
+                                            idx,
+                                            "startDate",
+                                            e.target.value
+                                        )
+                                    }
                                 />
                             </Grid>
                             <Grid item xs={6}>
@@ -119,7 +157,13 @@ export function PlanForm({ projectId, onCreated, onCancel }: Props) {
                                     InputLabelProps={{ shrink: true }}
                                     fullWidth
                                     value={p.endDate}
-                                    onChange={(e) => updatePhase(idx, 'endDate', e.target.value)}
+                                    onChange={(e) =>
+                                        updatePhase(
+                                            idx,
+                                            "endDate",
+                                            e.target.value
+                                        )
+                                    }
                                 />
                             </Grid>
                         </Grid>
@@ -134,7 +178,10 @@ export function PlanForm({ projectId, onCreated, onCancel }: Props) {
                                 fullWidth
                                 value={msDraft.name}
                                 onChange={(e) =>
-                                    setMsDraft((d) => ({ ...d, name: e.target.value }))
+                                    setMsDraft((d) => ({
+                                        ...d,
+                                        name: e.target.value,
+                                    }))
                                 }
                             />
                         </Grid>
@@ -146,7 +193,10 @@ export function PlanForm({ projectId, onCreated, onCancel }: Props) {
                                 fullWidth
                                 value={msDraft.date}
                                 onChange={(e) =>
-                                    setMsDraft((d) => ({ ...d, date: e.target.value }))
+                                    setMsDraft((d) => ({
+                                        ...d,
+                                        date: e.target.value,
+                                    }))
                                 }
                             />
                         </Grid>
@@ -156,7 +206,10 @@ export function PlanForm({ projectId, onCreated, onCancel }: Props) {
                                 fullWidth
                                 value={msDraft.description}
                                 onChange={(e) =>
-                                    setMsDraft((d) => ({ ...d, description: e.target.value }))
+                                    setMsDraft((d) => ({
+                                        ...d,
+                                        description: e.target.value,
+                                    }))
                                 }
                             />
                         </Grid>

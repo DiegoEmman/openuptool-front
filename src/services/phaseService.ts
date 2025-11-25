@@ -1,103 +1,104 @@
-import { nanoid } from 'nanoid';
-import type { Phase, CreatePhaseInput, UpdatePhaseInput, PhaseCode } from '../types/phase';
-
-// Almacenamiento en memoria (temporal hasta integración con backend)
-const phases: Phase[] = [];
-
-const PHASE_DEFINITIONS: Array<{ code: PhaseCode; name: string; order: number }> = [
-    { code: 'INCEPTION', name: 'Incepción', order: 1 },
-    { code: 'ELABORATION', name: 'Elaboración', order: 2 },
-    { code: 'CONSTRUCTION', name: 'Construcción', order: 3 },
-    { code: 'TRANSITION', name: 'Transición', order: 4 },
-];
+import type { Phase, UpdatePhaseInput, PhaseCode } from '../types/phase';
+import { httpClient } from './api/httpClient';
 
 export const phaseService = {
     /**
-     * Crea las 4 fases estándar de OpenUP para un proyecto
-     */
-    createDefaultPhases(projectId: string): Phase[] {
-        // Verificar que no existan fases para este proyecto
-        const existing = phases.filter((p) => p.projectId === projectId);
-        if (existing.length > 0) {
-            console.warn(`Fases ya existen para proyecto ${projectId}`);
-            return existing;
-        }
-
-        const newPhases: Phase[] = PHASE_DEFINITIONS.map((def) => ({
-            id: nanoid(),
-            projectId,
-            phaseCode: def.code,
-            name: def.name,
-            status: 'PENDING',
-            orderIndex: def.order,
-        }));
-
-        phases.push(...newPhases);
-        return newPhases;
-    },
-
-    /**
      * Obtiene todas las fases de un proyecto ordenadas
      */
-    getPhasesByProject(projectId: string): Phase[] {
-        return phases
-            .filter((p) => p.projectId === projectId)
-            .sort((a, b) => a.orderIndex - b.orderIndex);
+    async getPhasesByProject(projectId: string): Promise<Phase[]> {
+        return httpClient<Phase[]>(`/projects/${projectId}/phases`);
     },
 
     /**
      * Obtiene una fase específica por ID
      */
-    getPhase(phaseId: string): Phase | undefined {
-        return phases.find((p) => p.id === phaseId);
+    async getPhase(phaseId: string, projectId: string): Promise<Phase | undefined> {
+        try {
+            const phases = await this.getPhasesByProject(projectId);
+            return phases.find(p => p.id === phaseId);
+        } catch (error) {
+            console.error('Error fetching phase:', error);
+            return undefined;
+        }
     },
 
     /**
      * Obtiene una fase específica por proyecto y código
      */
-    getPhaseByCode(projectId: string, phaseCode: PhaseCode): Phase | undefined {
-        return phases.find((p) => p.projectId === projectId && p.phaseCode === phaseCode);
+    async getPhaseByCode(projectId: string, phaseCode: PhaseCode): Promise<Phase | undefined> {
+        try {
+            return await httpClient<Phase>(`/projects/${projectId}/phases/${phaseCode}`);
+        } catch (error) {
+            console.error('Error fetching phase by code:', error);
+            return undefined;
+        }
     },
 
     /**
      * Actualiza una fase existente
      */
-    updatePhase(phaseId: string, changes: UpdatePhaseInput): Phase | undefined {
-        const idx = phases.findIndex((p) => p.id === phaseId);
-        if (idx === -1) return undefined;
-
-        phases[idx] = { ...phases[idx], ...changes };
-        return phases[idx];
+    async updatePhase(projectId: string, phaseId: string, changes: UpdatePhaseInput): Promise<Phase | undefined> {
+        try {
+            return await httpClient<Phase>(`/projects/${projectId}/phases/${phaseId}`, {
+                method: 'PATCH',
+                body: JSON.stringify(changes),
+            });
+        } catch (error) {
+            console.error('Error updating phase:', error);
+            return undefined;
+        }
     },
 
     /**
      * Actualiza el estado de una fase
      */
-    updatePhaseStatus(phaseId: string, status: Phase['status']): Phase | undefined {
-        return this.updatePhase(phaseId, { status });
+    async updatePhaseStatus(projectId: string, phaseId: string, status: Phase['status']): Promise<Phase | undefined> {
+        return this.updatePhase(projectId, phaseId, { status });
     },
 
     /**
      * Establece fechas planificadas para una fase
      */
-    setPlannedDates(phaseId: string, startDate: string, endDate: string): Phase | undefined {
-        return this.updatePhase(phaseId, { startDate, endDate });
+    async setPlannedDates(projectId: string, phaseId: string, startDate: string, endDate: string): Promise<Phase | undefined> {
+        return this.updatePhase(projectId, phaseId, { startDate, endDate });
     },
 
     /**
      * Registra inicio real de una fase
      */
-    startPhase(phaseId: string): Phase | undefined {
-        const phase = this.getPhase(phaseId);
-        if (!phase) return undefined;
-
-        return this.updatePhase(phaseId, {
-            actualStart: new Date().toISOString().split('T')[0],
-            status: 'IN_PROGRESS',
-        });
+    async startPhase(projectId: string, phaseId: string): Promise<Phase | undefined> {
+        try {
+            return await httpClient<Phase>(`/projects/${projectId}/phases/${phaseId}/start`, {
+                method: 'POST',
+            });
+        } catch (error) {
+            console.error('Error starting phase:', error);
+            return undefined;
+        }
     },
 
     /**
+     * Registra fin real de una fase
+     */
+    async completePhase(projectId: string, phaseId: string): Promise<Phase | undefined> {
+        try {
+            return await httpClient<Phase>(`/projects/${projectId}/phases/${phaseId}/complete`, {
+                method: 'POST',
+            });
+        } catch (error) {
+            console.error('Error completing phase:', error);
+            return undefined;
+        }
+    },
+
+    /**
+     * Crea las fases por defecto (ahora manejado por el backend)
+     */
+    createDefaultPhases(projectId: string): Promise<Phase[]> {
+        // Las fases se crean automáticamente al crear el proyecto en el backend
+        return this.getPhasesByProject(projectId);
+    },
+};
      * Registra finalización real de una fase
      */
     completePhase(phaseId: string): Phase | undefined {

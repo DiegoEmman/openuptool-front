@@ -1,45 +1,51 @@
-import { nanoid } from 'nanoid';
 import type {
     Artifact,
     CreateArtifactInput,
     UpdateArtifactInput,
     PhaseCode,
-} from '../types/artifact';
-import { artifactCatalogService } from './artifactCatalogService';
-
-const artifacts: Artifact[] = [];
+} from "../types/artifact";
+import { httpClient } from "./api/httpClient";
 
 export const artifactService = {
-    getArtifacts(projectId: string, phaseId: PhaseCode): Artifact[] {
-        return artifacts.filter((a) => a.projectId === projectId && a.phaseId === phaseId);
+    async getArtifacts(
+        projectId: string,
+        phaseId: PhaseCode
+    ): Promise<Artifact[]> {
+        return httpClient<Artifact[]>(
+            `/projects/${projectId}/artifacts?phaseId=${phaseId}`
+        );
     },
-    createArtifact(input: CreateArtifactInput): Artifact {
-        const type = artifactCatalogService
-            .getArtifactTypesByPhase(input.phaseId)
-            .find((t) => t.id === input.artifactTypeId);
-        if (!type) throw new Error('Tipo de artefacto no encontrado para la fase');
-        const artifact: Artifact = {
-            id: nanoid(),
-            projectId: input.projectId,
-            phaseId: input.phaseId,
-            artifactTypeId: input.artifactTypeId,
-            title: input.title.trim(),
-            description: input.description?.trim(),
-            author: input.author?.trim(),
-            createdAt: new Date().toISOString(),
-            status: 'Pendiente',
-            isMandatory: type.isMandatory,
-            contentText: type.defaultFormat === 'TEXT' ? '' : undefined,
-        };
-        artifacts.push(artifact);
-        return artifact;
+
+    async createArtifact(input: CreateArtifactInput): Promise<Artifact> {
+        return httpClient<Artifact>(`/projects/${input.projectId}/artifacts`, {
+            method: "POST",
+            body: JSON.stringify({
+                projectId: input.projectId,
+                phaseId: input.phaseId,
+                artifactTypeId: input.artifactTypeId,
+                title: input.title.trim(),
+                description: input.description?.trim(),
+                author: input.author?.trim(),
+            }),
+        });
     },
-    updateArtifact(id: string, changes: UpdateArtifactInput): Artifact | undefined {
-        const idx = artifacts.findIndex((a) => a.id === id);
-        if (idx === -1) return undefined;
-        artifacts[idx] = { ...artifacts[idx], ...changes };
-        return artifacts[idx];
+
+    async updateArtifact(
+        projectId: string,
+        id: string,
+        changes: UpdateArtifactInput
+    ): Promise<Artifact | undefined> {
+        try {
+            return await httpClient<Artifact>(
+                `/projects/${projectId}/artifacts/${id}`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify(changes),
+                }
+            );
+        } catch (error) {
+            console.error("Error updating artifact:", error);
+            return undefined;
+        }
     },
 };
-
-// TODO: Reemplazar por llamadas HTTP reales al backend.

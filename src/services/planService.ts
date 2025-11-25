@@ -1,34 +1,31 @@
-import { nanoid } from 'nanoid';
-import type { CreateInitialPlanInput, ProjectPlan } from '../types/plan';
-import { projectService } from './projectService';
-
-const plans: ProjectPlan[] = [];
+import type { CreateInitialPlanInput, ProjectPlan } from "../types/plan";
+import { httpClient } from "./api/httpClient";
 
 export const planService = {
-    getPlanByProject(projectId: string): ProjectPlan | undefined {
-        return plans.find((p) => p.projectId === projectId);
-    },
-    createInitialPlan(projectId: string, input: CreateInitialPlanInput): ProjectPlan {
-        const existing = this.getPlanByProject(projectId);
-        if (existing) {
-            throw new Error('Plan inicial ya existe para el proyecto');
+    async getPlanByProject(
+        projectId: string
+    ): Promise<ProjectPlan | undefined> {
+        try {
+            return await httpClient<ProjectPlan>(`/projects/${projectId}/plan`);
+        } catch (error) {
+            console.error("Error fetching plan:", error);
+            return undefined;
         }
-        const plan: ProjectPlan = {
-            id: nanoid(),
-            projectId,
-            objectives: input.objectives.trim(),
-            scope: input.scope.trim(),
-            initialSchedule: input.initialSchedule,
-            milestones: input.milestones.map((m) => ({ id: nanoid(), ...m })),
-            createdAt: new Date().toISOString(),
-            version: 1,
-            observations: input.observations?.trim(),
-        };
-        plans.push(plan);
-        // Asociar plan al proyecto
-        projectService.update(projectId, { planId: plan.id });
-        return plan;
+    },
+
+    async createInitialPlan(
+        projectId: string,
+        input: CreateInitialPlanInput
+    ): Promise<ProjectPlan> {
+        return httpClient<ProjectPlan>(`/projects/${projectId}/plan`, {
+            method: "POST",
+            body: JSON.stringify({
+                objectives: input.objectives.trim(),
+                scope: input.scope.trim(),
+                initialSchedule: input.initialSchedule,
+                milestones: input.milestones,
+                observations: input.observations?.trim(),
+            }),
+        });
     },
 };
-
-// TODO: Persistir en backend; actualmente en memoria.

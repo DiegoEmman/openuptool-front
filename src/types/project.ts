@@ -11,6 +11,8 @@ export interface Project {
     tags: string[];
     planId?: string; // Referencia al plan inicial
     phases?: string[]; // Lista simple de fases
+    createdAt?: string; // Fecha de creación desde el backend
+    updatedAt?: string; // Fecha de actualización desde el backend
 }
 
 export interface CreateProjectInput {

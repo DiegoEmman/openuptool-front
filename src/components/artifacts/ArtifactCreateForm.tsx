@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
-import { Box, Button, Grid, MenuItem, TextField, Typography } from '@mui/material';
-import type { ArtifactType, PhaseCode } from '../../types/artifact';
-import { artifactService } from '../../services/artifactService';
+import React, { useState } from "react";
+import {
+    Box,
+    Button,
+    Grid,
+    MenuItem,
+    TextField,
+    Typography,
+} from "@mui/material";
+import type { ArtifactType, PhaseCode } from "../../types/artifact";
+import { artifactService } from "../../services/artifactService";
 
 interface Props {
     projectId: string;
@@ -11,23 +18,34 @@ interface Props {
     onCancel(): void;
 }
 
-export function ArtifactCreateForm({ projectId, phaseId, types, onCreated, onCancel }: Props) {
-    const [artifactTypeId, setArtifactTypeId] = useState(types[0]?.id || '');
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [author, setAuthor] = useState('');
+export function ArtifactCreateForm({
+    projectId,
+    phaseId,
+    types,
+    onCreated,
+    onCancel,
+}: Props) {
+    const [artifactTypeId, setArtifactTypeId] = useState(types[0]?.id || "");
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [author, setAuthor] = useState("");
 
-    function submit() {
+    async function submit() {
         if (!artifactTypeId || !title.trim()) return;
-        artifactService.createArtifact({
-            projectId,
-            phaseId,
-            artifactTypeId,
-            title,
-            description,
-            author,
-        });
-        onCreated();
+        try {
+            await artifactService.createArtifact({
+                projectId,
+                phaseId,
+                artifactTypeId,
+                title,
+                description,
+                author,
+            });
+            onCreated();
+        } catch (error) {
+            console.error("Error creating artifact:", error);
+            alert("Error al crear el artefacto");
+        }
     }
 
     return (

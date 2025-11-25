@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
     Box,
     Button,
@@ -9,45 +9,60 @@ import {
     TextField,
     Typography,
     Breadcrumbs,
-} from '@mui/material';
-import { Link } from 'react-router';
-import { projectService } from '../../services/projectService';
-import { useNavigate } from 'react-router';
-import type { CreateProjectInput } from '../../types/project';
+    CircularProgress,
+    Alert,
+} from "@mui/material";
+import { Link } from "react-router";
+import { projectService } from "../../services/projectService";
+import { useNavigate } from "react-router";
+import type { CreateProjectInput } from "../../types/project";
 
 export function NewProjectPage() {
     const navigate = useNavigate();
     const [form, setForm] = useState<CreateProjectInput>({
-        name: '',
-        identifier: '',
-        startDate: new Date().toISOString().split('T')[0],
-        owner: '',
-        description: '',
+        name: "",
+        identifier: "",
+        startDate: new Date().toISOString().split("T")[0],
+        owner: "",
+        description: "",
         tags: [],
     });
-    const [tagInput, setTagInput] = useState('');
+    const [tagInput, setTagInput] = useState("");
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     function validate(): boolean {
         const e: Record<string, string> = {};
-        if (!form.name.trim()) e.name = 'Nombre requerido';
-        if (!form.identifier.trim()) e.identifier = 'Identificador requerido';
-        if (!form.startDate) e.startDate = 'Fecha inicio requerida';
+        if (!form.name.trim()) e.name = "Nombre requerido";
+        if (!form.identifier.trim()) e.identifier = "Identificador requerido";
+        if (!form.startDate) e.startDate = "Fecha inicio requerida";
         setErrors(e);
         return Object.keys(e).length === 0;
     }
 
-    function submit() {
+    async function submit() {
         if (!validate()) return;
-        projectService.createProject(form);
-        navigate('/projects');
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            await projectService.createProject(form);
+            navigate("/projects");
+        } catch (err) {
+            setError(
+                err instanceof Error ? err.message : "Error al crear proyecto"
+            );
+            setLoading(false);
+        }
     }
 
     function addTag() {
         const t = tagInput.trim();
         if (t && !form.tags.includes(t)) {
             setForm((f) => ({ ...f, tags: [...f.tags, t] }));
-            setTagInput('');
+            setTagInput("");
         }
     }
 
@@ -58,7 +73,10 @@ export function NewProjectPage() {
     return (
         <Container sx={{ py: 4 }}>
             <Breadcrumbs sx={{ mb: 2 }}>
-                <Link to="/projects" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Link
+                    to="/projects"
+                    style={{ textDecoration: "none", color: "inherit" }}
+                >
                     Proyectos
                 </Link>
                 <Typography color="text.primary">Nuevo Proyecto</Typography>
@@ -66,15 +84,29 @@ export function NewProjectPage() {
             <Typography variant="h4" mb={3}>
                 Nuevo Proyecto
             </Typography>
+
+            {error && (
+                <Alert
+                    severity="error"
+                    sx={{ mb: 2 }}
+                    onClose={() => setError(null)}
+                >
+                    {error}
+                </Alert>
+            )}
+
             <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
                     <TextField
                         label="Nombre"
                         fullWidth
                         value={form.name}
-                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                        onChange={(e) =>
+                            setForm((f) => ({ ...f, name: e.target.value }))
+                        }
                         error={!!errors.name}
                         helperText={errors.name}
+                        disabled={loading}
                     />
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -82,9 +114,15 @@ export function NewProjectPage() {
                         label="Identificador"
                         fullWidth
                         value={form.identifier}
-                        onChange={(e) => setForm((f) => ({ ...f, identifier: e.target.value }))}
+                        onChange={(e) =>
+                            setForm((f) => ({
+                                ...f,
+                                identifier: e.target.value,
+                            }))
+                        }
                         error={!!errors.identifier}
                         helperText={errors.identifier}
+                        disabled={loading}
                     />
                 </Grid>
                 <Grid item xs={12} md={4}>
@@ -94,9 +132,15 @@ export function NewProjectPage() {
                         InputLabelProps={{ shrink: true }}
                         fullWidth
                         value={form.startDate}
-                        onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
+                        onChange={(e) =>
+                            setForm((f) => ({
+                                ...f,
+                                startDate: e.target.value,
+                            }))
+                        }
                         error={!!errors.startDate}
                         helperText={errors.startDate}
+                        disabled={loading}
                     />
                 </Grid>
                 <Grid item xs={12} md={8}>
@@ -104,7 +148,10 @@ export function NewProjectPage() {
                         label="Responsable"
                         fullWidth
                         value={form.owner}
-                        onChange={(e) => setForm((f) => ({ ...f, owner: e.target.value }))}
+                        onChange={(e) =>
+                            setForm((f) => ({ ...f, owner: e.target.value }))
+                        }
+                        disabled={loading}
                     />
                 </Grid>
                 <Grid item xs={12}>
@@ -114,7 +161,13 @@ export function NewProjectPage() {
                         minRows={3}
                         fullWidth
                         value={form.description}
-                        onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                        onChange={(e) =>
+                            setForm((f) => ({
+                                ...f,
+                                description: e.target.value,
+                            }))
+                        }
+                        disabled={loading}
                     />
                 </Grid>
                 <Grid item xs={12}>
@@ -124,14 +177,19 @@ export function NewProjectPage() {
                             value={tagInput}
                             onChange={(e) => setTagInput(e.target.value)}
                             onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
+                                if (e.key === "Enter") {
                                     e.preventDefault();
                                     addTag();
                                 }
                             }}
                             size="small"
+                            disabled={loading}
                         />
-                        <Button variant="outlined" onClick={addTag}>
+                        <Button
+                            variant="outlined"
+                            onClick={addTag}
+                            disabled={loading}
+                        >
                             Agregar Tag
                         </Button>
                     </Stack>
@@ -141,18 +199,35 @@ export function NewProjectPage() {
                                 key={t}
                                 label={t}
                                 onDelete={() =>
-                                    setForm((f) => ({ ...f, tags: f.tags.filter((x) => x !== t) }))
+                                    setForm((f) => ({
+                                        ...f,
+                                        tags: f.tags.filter((x) => x !== t),
+                                    }))
                                 }
+                                disabled={loading}
                             />
                         ))}
                     </Box>
                 </Grid>
                 <Grid item xs={12}>
                     <Stack direction="row" gap={2}>
-                        <Button variant="contained" onClick={submit}>
-                            Guardar
+                        <Button
+                            variant="contained"
+                            onClick={submit}
+                            disabled={loading}
+                            startIcon={
+                                loading ? (
+                                    <CircularProgress size={20} />
+                                ) : undefined
+                            }
+                        >
+                            {loading ? "Guardando..." : "Guardar"}
                         </Button>
-                        <Button variant="text" onClick={() => navigate(-1)}>
+                        <Button
+                            variant="text"
+                            onClick={() => navigate(-1)}
+                            disabled={loading}
+                        >
                             Cancelar
                         </Button>
                     </Stack>

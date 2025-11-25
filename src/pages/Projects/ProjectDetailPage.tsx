@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router';
-import { projectService } from '../../services/projectService';
-import { planService } from '../../services/planService';
-import { artifactCatalogService } from '../../services/artifactCatalogService';
-import { artifactService } from '../../services/artifactService';
-import { iterationService } from '../../services/iterationService';
-import type { PhaseCode } from '../../types/artifact';
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router";
+import { projectService } from "../../services/projectService";
+import { planService } from "../../services/planService";
+import { artifactCatalogService } from "../../services/artifactCatalogService";
+import { artifactService } from "../../services/artifactService";
+import { iterationService } from "../../services/iterationService";
+import type { PhaseCode } from "../../types/artifact";
+import type {
+    Project,
+    ProjectPlan,
+    Artifact,
+    Iteration,
+    ArtifactType,
+} from "../../types";
 import {
     Container,
     Box,
@@ -17,28 +24,64 @@ import {
     Card,
     CardContent,
     Breadcrumbs,
-} from '@mui/material';
-import { PlanForm } from '../../components/plan/PlanForm';
-import { PlanSummary } from '../../components/plan/PlanSummary';
-import { InceptionArtifactCatalog } from '../../components/artifacts/InceptionArtifactCatalog';
-import { ArtifactCreateForm } from '../../components/artifacts/ArtifactCreateForm';
-import { PhaseArtifactsView } from '../../components/artifacts/PhaseArtifactsView';
-import { IterationForm } from '../../components/iterations/IterationForm';
-import { IterationsTable } from '../../components/iterations/IterationsTable';
+    CircularProgress,
+} from "@mui/material";
+import { PlanForm } from "../../components/plan/PlanForm";
+import { PlanSummary } from "../../components/plan/PlanSummary";
+import { InceptionArtifactCatalog } from "../../components/artifacts/InceptionArtifactCatalog";
+import { ArtifactCreateForm } from "../../components/artifacts/ArtifactCreateForm";
+import { PhaseArtifactsView } from "../../components/artifacts/PhaseArtifactsView";
+import { IterationForm } from "../../components/iterations/IterationForm";
+import { IterationsTable } from "../../components/iterations/IterationsTable";
 
 export function ProjectDetailPage() {
     const { id } = useParams();
-    const project = id ? projectService.get(id) : undefined;
+    const [project, setProject] = useState<Project | undefined>();
+    const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState(0);
-    const plan = id ? planService.getPlanByProject(id) : undefined;
+    const [plan, setPlan] = useState<ProjectPlan | undefined>();
     const [showPlanForm, setShowPlanForm] = useState(false);
     const [showArtifactForm, setShowArtifactForm] = useState(false);
     const [showIterationForm, setShowIterationForm] = useState(false);
     const [catalogRefresh, setCatalogRefresh] = useState(0);
-    const phase: PhaseCode = 'INCEPTION';
-    const artifactTypes = artifactCatalogService.getArtifactTypesByPhase(phase);
-    const artifacts = id ? artifactService.getArtifacts(id, phase) : [];
-    const iterations = id ? iterationService.getIterations(id) : [];
+    const phase: PhaseCode = "INCEPTION";
+    const [artifactTypes, setArtifactTypes] = useState<ArtifactType[]>([]);
+    const [artifacts, setArtifacts] = useState<Artifact[]>([]);
+    const [iterations, setIterations] = useState<Iteration[]>([]);
+
+    useEffect(() => {
+        if (!id) return;
+
+        Promise.all([
+            projectService.get(id),
+            planService.getPlanByProject(id),
+            artifactCatalogService.getArtifactTypesByPhase(phase),
+            artifactService.getArtifacts(id, phase),
+            iterationService.getIterations(id),
+        ])
+            .then(([proj, pln, types, arts, iters]) => {
+                setProject(proj);
+                setPlan(pln);
+                setArtifactTypes(types);
+                setArtifacts(arts);
+                setIterations(iters);
+                setLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error loading project details:", error);
+                setLoading(false);
+            });
+    }, [id, catalogRefresh]);
+
+    if (loading) {
+        return (
+            <Container
+                sx={{ py: 4, display: "flex", justifyContent: "center" }}
+            >
+                <CircularProgress />
+            </Container>
+        );
+    }
 
     if (!project) {
         return (
@@ -54,12 +97,20 @@ export function ProjectDetailPage() {
     return (
         <Container sx={{ py: 4 }}>
             <Breadcrumbs sx={{ mb: 2 }}>
-                <Link to="/projects" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Link
+                    to="/projects"
+                    style={{ textDecoration: "none", color: "inherit" }}
+                >
                     Proyectos
                 </Link>
                 <Typography color="text.primary">{project.name}</Typography>
             </Breadcrumbs>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+            <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={3}
+            >
                 <Typography variant="h4">{project.name}</Typography>
                 <Button component={Link} to="/projects">
                     Volver
@@ -76,12 +127,20 @@ export function ProjectDetailPage() {
                     <Card sx={{ mb: 2 }}>
                         <CardContent>
                             <Typography variant="h6">Datos</Typography>
-                            <Typography>Identificador: {project.identifier}</Typography>
+                            <Typography>
+                                Identificador: {project.identifier}
+                            </Typography>
                             <Typography>Inicio: {project.startDate}</Typography>
                             <Typography>Estado: {project.status}</Typography>
-                            <Typography>Responsable: {project.owner || '-'}</Typography>
-                            <Typography>Tags: {project.tags.join(', ') || '-'}</Typography>
-                            <Typography>Descripción: {project.description || '-'}</Typography>
+                            <Typography>
+                                Responsable: {project.owner || "-"}
+                            </Typography>
+                            <Typography>
+                                Tags: {project.tags.join(", ") || "-"}
+                            </Typography>
+                            <Typography>
+                                Descripción: {project.description || "-"}
+                            </Typography>
                         </CardContent>
                     </Card>
                 </Box>
@@ -89,7 +148,10 @@ export function ProjectDetailPage() {
             {tab === 1 && (
                 <Box>
                     {!plan && !showPlanForm && (
-                        <Button variant="contained" onClick={() => setShowPlanForm(true)}>
+                        <Button
+                            variant="contained"
+                            onClick={() => setShowPlanForm(true)}
+                        >
                             Crear plan inicial
                         </Button>
                     )}
@@ -97,16 +159,27 @@ export function ProjectDetailPage() {
                         <PlanForm
                             projectId={project.id}
                             onCancel={() => setShowPlanForm(false)}
-                            onCreated={() => setShowPlanForm(false)}
+                            onCreated={() => {
+                                setShowPlanForm(false);
+                                // Recargar plan
+                                planService
+                                    .getPlanByProject(project.id)
+                                    .then(setPlan);
+                            }}
                         />
                     )}
-                    {plan && <PlanSummary plan={plan} projectName={project.name} />}
+                    {plan && (
+                        <PlanSummary plan={plan} projectName={project.name} />
+                    )}
                 </Box>
             )}
             {tab === 2 && (
                 <Box>
                     <Stack direction="row" gap={2} mb={2}>
-                        <Button variant="outlined" onClick={() => setShowArtifactForm((v) => !v)}>
+                        <Button
+                            variant="outlined"
+                            onClick={() => setShowArtifactForm((v) => !v)}
+                        >
                             Agregar artefacto
                         </Button>
                     </Stack>
@@ -129,7 +202,10 @@ export function ProjectDetailPage() {
             {tab === 3 && (
                 <Box>
                     <Stack direction="row" gap={2} mb={2}>
-                        <Button variant="contained" onClick={() => setShowIterationForm((v) => !v)}>
+                        <Button
+                            variant="contained"
+                            onClick={() => setShowIterationForm((v) => !v)}
+                        >
                             Nueva Iteración
                         </Button>
                     </Stack>
