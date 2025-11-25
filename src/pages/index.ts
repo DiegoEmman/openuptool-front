@@ -1,2 +1,3 @@
-export * from './Home/HomePage';
-export * from './Welcome/WelcomePage';
+export * from './Projects/ProjectsListPage';
+export * from './Projects/NewProjectPage';
+export * from './Projects/ProjectDetailPage';

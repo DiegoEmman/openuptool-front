@@ -1,4 +1,7 @@
-/* Estilos globales y tokens (variables CSS, reset, tipografía) */
+@import 'tailwindcss/preflight';
+@tailwind utilities;
+
+/* Tokens y estilos globales adicionales */
 :root {
     --color-primary: #2563eb;
 }
@@ -6,4 +9,5 @@
 body {
     font-family: 'Inter', system-ui, sans-serif;
     margin: 0;
+    color: #111827;
 }
