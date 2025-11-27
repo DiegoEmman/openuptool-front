@@ -12,6 +12,7 @@ import {
 import { AccountCircle, ExitToApp } from "@mui/icons-material";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
+import { NotificationsBell } from "../notifications/NotificationsBell";
 
 export const Navbar: React.FC = () => {
     const navigate = useNavigate();
@@ -51,6 +52,8 @@ export const Navbar: React.FC = () => {
                         >
                             {user.firstName} {user.lastName} ({user.role})
                         </Typography>
+
+                        <NotificationsBell />
 
                         <IconButton
                             size="large"

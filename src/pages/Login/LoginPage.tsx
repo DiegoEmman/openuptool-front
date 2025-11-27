@@ -120,7 +120,7 @@ export default function LoginPage() {
                             Email: admin@openuptool.com
                         </Typography>
                         <Typography variant="caption" display="block">
-                            Password: Admin123!
+                            Password: Password123!
                         </Typography>
                     </Box>
                 </Paper>

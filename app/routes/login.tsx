@@ -129,7 +129,7 @@ export default function LoginRoute() {
                             display="block"
                             sx={{ mb: 1 }}
                         >
-                            Password: Admin123!
+                            Password: Password123!
                         </Typography>
                         <Typography
                             variant="caption"
@@ -142,7 +142,7 @@ export default function LoginRoute() {
                             Email: viewer@openuptool.com
                         </Typography>
                         <Typography variant="caption" display="block">
-                            Password: Admin123!
+                            Password: Password123!
                         </Typography>
                     </Box>
                 </Paper>

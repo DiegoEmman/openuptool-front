@@ -34,6 +34,8 @@ import { ArtifactCreateForm } from "../../components/artifacts/ArtifactCreateFor
 import { PhaseArtifactsView } from "../../components/artifacts/PhaseArtifactsView";
 import { IterationForm } from "../../components/iterations/IterationForm";
 import { IterationsTable } from "../../components/iterations/IterationsTable";
+import { InviteUserModal } from "../../components/invitations/InviteUserModal";
+import { InvitationsList } from "../../components/invitations/InvitationsList";
 
 interface ProjectDetailPageProps {
     projectId: string;
@@ -59,6 +61,7 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
     const [artifactTypes, setArtifactTypes] = useState<ArtifactType[]>([]);
     const [artifacts, setArtifacts] = useState<Artifact[]>([]);
     const [iterations, setIterations] = useState<Iteration[]>([]);
+    const [showInviteModal, setShowInviteModal] = useState(false);
 
     useEffect(() => {
         if (!projectId) return;
@@ -140,6 +143,7 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
                     <Tab label="Plan del Proyecto" />
                     <Tab label="Incepción" />
                     <Tab label="Iteraciones" />
+                    <Tab label="Equipo" />
                 </Tabs>
                 {tab === 0 && (
                     <Box>
@@ -272,6 +276,31 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
                                 iterationService
                                     .getIterations(projectId)
                                     .then(setIterations);
+                            }}
+                        />
+                    </Box>
+                )}
+                {tab === 4 && (
+                    <Box>
+                        <Stack direction="row" gap={2} mb={3}>
+                            <Button
+                                variant="contained"
+                                onClick={() => setShowInviteModal(true)}
+                            >
+                                ➕ Invitar Usuario
+                            </Button>
+                        </Stack>
+                        <Typography variant="h6" sx={{ mb: 2 }}>
+                            Invitaciones del Proyecto
+                        </Typography>
+                        <InvitationsList projectId={projectId} />
+
+                        <InviteUserModal
+                            projectId={projectId}
+                            isOpen={showInviteModal}
+                            onClose={() => setShowInviteModal(false)}
+                            onSuccess={() => {
+                                // Recargar lista de invitaciones
                             }}
                         />
                     </Box>

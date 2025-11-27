@@ -11,8 +11,13 @@ import {
     MenuItem,
     Box,
     Typography,
+    Button,
+    Collapse,
+    IconButton,
 } from "@mui/material";
 import { InlineArtifactEditor } from "./InlineArtifactEditor";
+import { ArtifactFileUpload } from "./ArtifactFileUpload";
+import { VersionHistory } from "./VersionHistory";
 import { artifactService } from "../../services/artifactService";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -23,6 +28,9 @@ interface Props {
 }
 export function PhaseArtifactsView({ artifacts, projectId, onUpdate }: Props) {
     const [filter, setFilter] = useState<string>("ALL");
+    const [expandedArtifact, setExpandedArtifact] = useState<string | null>(
+        null
+    );
     const { hasRole } = useAuth();
     const canEdit = hasRole(["Admin", "Manager", "Developer"]);
 
@@ -36,7 +44,7 @@ export function PhaseArtifactsView({ artifacts, projectId, onUpdate }: Props) {
     ) => {
         try {
             await artifactService.updateArtifact(projectId, artifactId, {
-                status: newStatus,
+                status: newStatus as "Pendiente" | "En revisión" | "Aprobado",
             });
             onUpdate?.();
         } catch (error) {
@@ -64,6 +72,7 @@ export function PhaseArtifactsView({ artifacts, projectId, onUpdate }: Props) {
             <Table size="small">
                 <TableHead>
                     <TableRow>
+                        <TableCell width="30px"></TableCell>
                         <TableCell>Título</TableCell>
                         <TableCell>Autor</TableCell>
                         <TableCell>Obligatorio</TableCell>
@@ -73,55 +82,105 @@ export function PhaseArtifactsView({ artifacts, projectId, onUpdate }: Props) {
                 </TableHead>
                 <TableBody>
                     {filtered.map((a) => (
-                        <TableRow key={a.id}>
-                            <TableCell>{a.title}</TableCell>
-                            <TableCell>{a.author || "-"}</TableCell>
-                            <TableCell>{a.isMandatory ? "Sí" : "No"}</TableCell>
-                            <TableCell>
-                                {canEdit ? (
-                                    <Select
+                        <React.Fragment key={a.id}>
+                            <TableRow>
+                                <TableCell>
+                                    <IconButton
                                         size="small"
-                                        value={a.status}
-                                        onChange={(e) =>
-                                            handleStatusChange(
-                                                a.id,
-                                                e.target.value
+                                        onClick={() =>
+                                            setExpandedArtifact(
+                                                expandedArtifact === a.id
+                                                    ? null
+                                                    : a.id
                                             )
                                         }
-                                        sx={{ minWidth: 120 }}
                                     >
-                                        <MenuItem value="Pendiente">
-                                            Pendiente
-                                        </MenuItem>
-                                        <MenuItem value="En revisión">
-                                            En revisión
-                                        </MenuItem>
-                                        <MenuItem value="Aprobado">
-                                            Aprobado
-                                        </MenuItem>
-                                    </Select>
-                                ) : (
-                                    <Chip
-                                        label={a.status}
-                                        color={
-                                            a.status === "Aprobado"
-                                                ? "success"
-                                                : a.status === "En revisión"
-                                                  ? "warning"
-                                                  : "default"
-                                        }
-                                        size="small"
-                                    />
-                                )}
-                            </TableCell>
-                            <TableCell>
-                                <InlineArtifactEditor artifact={a} />
-                            </TableCell>
-                        </TableRow>
+                                        {expandedArtifact === a.id ? "▼" : "▶"}
+                                    </IconButton>
+                                </TableCell>
+                                <TableCell>{a.title}</TableCell>
+                                <TableCell>{a.author || "-"}</TableCell>
+                                <TableCell>
+                                    {a.isMandatory ? "Sí" : "No"}
+                                </TableCell>
+                                <TableCell>
+                                    {canEdit ? (
+                                        <Select
+                                            size="small"
+                                            value={a.status}
+                                            onChange={(e) =>
+                                                handleStatusChange(
+                                                    a.id,
+                                                    e.target.value
+                                                )
+                                            }
+                                            sx={{ minWidth: 120 }}
+                                        >
+                                            <MenuItem value="Pendiente">
+                                                Pendiente
+                                            </MenuItem>
+                                            <MenuItem value="En revisión">
+                                                En revisión
+                                            </MenuItem>
+                                            <MenuItem value="Aprobado">
+                                                Aprobado
+                                            </MenuItem>
+                                        </Select>
+                                    ) : (
+                                        <Chip
+                                            label={a.status}
+                                            color={
+                                                a.status === "Aprobado"
+                                                    ? "success"
+                                                    : a.status === "En revisión"
+                                                      ? "warning"
+                                                      : "default"
+                                            }
+                                            size="small"
+                                        />
+                                    )}
+                                </TableCell>
+                                <TableCell>
+                                    <InlineArtifactEditor artifact={a} />
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell
+                                    colSpan={6}
+                                    style={{ paddingBottom: 0, paddingTop: 0 }}
+                                >
+                                    <Collapse
+                                        in={expandedArtifact === a.id}
+                                        timeout="auto"
+                                        unmountOnExit
+                                    >
+                                        <Box sx={{ margin: 2 }}>
+                                            <Typography
+                                                variant="h6"
+                                                gutterBottom
+                                            >
+                                                📎 Versiones del Artefacto
+                                            </Typography>
+                                            {canEdit && (
+                                                <ArtifactFileUpload
+                                                    projectId={projectId}
+                                                    artifactId={a.id}
+                                                    onUploadSuccess={onUpdate}
+                                                />
+                                            )}
+                                            <VersionHistory
+                                                projectId={projectId}
+                                                artifactId={a.id}
+                                            />
+                                        </Box>
+                                    </Collapse>
+                                </TableCell>
+                            </TableRow>
+                        </React.Fragment>
                     ))}
                     {filtered.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={5} align="center">
+                            <TableCell colSpan={6} align="center">
                                 Sin artefactos
                             </TableCell>
                         </TableRow>

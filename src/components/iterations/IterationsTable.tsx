@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import type { Iteration } from "../../types/iteration";
 import {
     Table,
@@ -11,9 +11,12 @@ import {
     Chip,
     Select,
     MenuItem,
+    IconButton,
+    Collapse,
 } from "@mui/material";
 import { iterationService } from "../../services/iterationService";
 import { useAuth } from "../../contexts/AuthContext";
+import { IterationScopeManager } from "./IterationScopeManager";
 
 function formatDate(dateString: string | undefined): string {
     if (!dateString) return "-";
@@ -30,6 +33,9 @@ interface Props {
 export function IterationsTable({ iterations, projectId, onUpdate }: Props) {
     const { hasRole } = useAuth();
     const canEditStatus = hasRole(["Admin", "Manager"]);
+    const [expandedIteration, setExpandedIteration] = useState<string | null>(
+        null
+    );
 
     const active = iterations.filter((i) => i.status !== "Finalizada");
     const past = iterations.filter((i) => i.status === "Finalizada");
@@ -59,6 +65,7 @@ export function IterationsTable({ iterations, projectId, onUpdate }: Props) {
                 <Table size="small">
                     <TableHead>
                         <TableRow>
+                            <TableCell width="30px"></TableCell>
                             <TableCell>Nombre</TableCell>
                             <TableCell>Fase</TableCell>
                             <TableCell>Fechas</TableCell>
@@ -68,47 +75,90 @@ export function IterationsTable({ iterations, projectId, onUpdate }: Props) {
                     </TableHead>
                     <TableBody>
                         {data.map((i) => (
-                            <TableRow key={i.id}>
-                                <TableCell>{i.name}</TableCell>
-                                <TableCell>{i.phase}</TableCell>
-                                <TableCell>
-                                    {formatDate(i.startDate)} -{" "}
-                                    {formatDate(i.endDate)}
-                                </TableCell>
-                                <TableCell>
-                                    {canEditStatus ? (
-                                        <Select
+                            <React.Fragment key={i.id}>
+                                <TableRow>
+                                    <TableCell>
+                                        <IconButton
                                             size="small"
-                                            value={i.status}
-                                            onChange={(e) =>
-                                                handleStatusChange(
-                                                    i.id,
-                                                    e.target
-                                                        .value as Iteration["status"]
+                                            onClick={() =>
+                                                setExpandedIteration(
+                                                    expandedIteration === i.id
+                                                        ? null
+                                                        : i.id
                                                 )
                                             }
-                                            sx={{ minWidth: 120 }}
                                         >
-                                            <MenuItem value="Planeada">
-                                                Planeada
-                                            </MenuItem>
-                                            <MenuItem value="En curso">
-                                                En curso
-                                            </MenuItem>
-                                            <MenuItem value="Finalizada">
-                                                Finalizada
-                                            </MenuItem>
-                                        </Select>
-                                    ) : (
-                                        <Chip label={i.status} size="small" />
-                                    )}
-                                </TableCell>
-                                <TableCell>{i.objective || "-"}</TableCell>
-                            </TableRow>
+                                            {expandedIteration === i.id
+                                                ? "▼"
+                                                : "▶"}
+                                        </IconButton>
+                                    </TableCell>
+                                    <TableCell>{i.name}</TableCell>
+                                    <TableCell>{i.phase}</TableCell>
+                                    <TableCell>
+                                        {formatDate(i.startDate)} -{" "}
+                                        {formatDate(i.endDate)}
+                                    </TableCell>
+                                    <TableCell>
+                                        {canEditStatus ? (
+                                            <Select
+                                                size="small"
+                                                value={i.status}
+                                                onChange={(e) =>
+                                                    handleStatusChange(
+                                                        i.id,
+                                                        e.target
+                                                            .value as Iteration["status"]
+                                                    )
+                                                }
+                                                sx={{ minWidth: 120 }}
+                                            >
+                                                <MenuItem value="Planeada">
+                                                    Planeada
+                                                </MenuItem>
+                                                <MenuItem value="En curso">
+                                                    En curso
+                                                </MenuItem>
+                                                <MenuItem value="Finalizada">
+                                                    Finalizada
+                                                </MenuItem>
+                                            </Select>
+                                        ) : (
+                                            <Chip
+                                                label={i.status}
+                                                size="small"
+                                            />
+                                        )}
+                                    </TableCell>
+                                    <TableCell>{i.objective || "-"}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={6}
+                                        style={{
+                                            paddingBottom: 0,
+                                            paddingTop: 0,
+                                        }}
+                                    >
+                                        <Collapse
+                                            in={expandedIteration === i.id}
+                                            timeout="auto"
+                                            unmountOnExit
+                                        >
+                                            <Box sx={{ margin: 2 }}>
+                                                <IterationScopeManager
+                                                    iterationId={i.id}
+                                                    projectId={projectId}
+                                                />
+                                            </Box>
+                                        </Collapse>
+                                    </TableCell>
+                                </TableRow>
+                            </React.Fragment>
                         ))}
                         {data.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={5} align="center">
+                                <TableCell colSpan={6} align="center">
                                     Sin iteraciones
                                 </TableCell>
                             </TableRow>
