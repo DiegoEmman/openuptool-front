@@ -36,5 +36,5 @@ export const artifactCatalogService = {
     },
 };
 
-// Inicializar catálogo Inception por defecto al cargar el módulo
-artifactCatalogService.seedDefaultInceptionTypes();
+// No inicializar automáticamente - se debe llamar manualmente después de autenticarse
+// artifactCatalogService.seedDefaultInceptionTypes();

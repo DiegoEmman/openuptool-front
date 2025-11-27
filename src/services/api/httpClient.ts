@@ -7,9 +7,16 @@ export async function httpClient<T>(
 ): Promise<T> {
     const fullUrl = url.startsWith("http") ? url : `${ENV.API_BASE_URL}${url}`;
 
+    // Obtener token de autenticación (solo en el navegador)
+    const token =
+        typeof window !== "undefined"
+            ? localStorage.getItem("openuptool_token")
+            : null;
+
     const defaultOptions: RequestInit = {
         headers: {
             "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
             ...options?.headers,
         },
         ...options,
@@ -18,6 +25,13 @@ export async function httpClient<T>(
     const res = await fetch(fullUrl, defaultOptions);
 
     if (!res.ok) {
+        // Si es 401, limpiar token y redirigir al login (solo en el navegador)
+        if (res.status === 401 && typeof window !== "undefined") {
+            localStorage.removeItem("openuptool_token");
+            localStorage.removeItem("openuptool_user");
+            window.location.href = "/login";
+        }
+
         let errorMessage = `HTTP Error ${res.status}`;
         try {
             const errorData = await res.json();
