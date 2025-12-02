@@ -253,7 +253,8 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
                         </Typography>
                         <Card sx={{ p: 3, textAlign: "center" }}>
                             <Typography variant="body1" sx={{ mb: 2 }}>
-                                Gestiona los artefactos de la fase de Elaboración del proyecto
+                                Gestiona los artefactos de la fase de
+                                Elaboración del proyecto
                             </Typography>
                             <Button
                                 component={Link}

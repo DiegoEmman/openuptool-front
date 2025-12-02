@@ -1,3 +1,3 @@
-export { ArtifactForm } from './ArtifactForm';
-export { ArtifactFilesPanel } from './ArtifactFilesPanel';
-export { ValidationModal } from './ValidationModal';
+export { ArtifactForm } from "./ArtifactForm";
+export { ArtifactFilesPanel } from "./ArtifactFilesPanel";
+export { ValidationModal } from "./ValidationModal";

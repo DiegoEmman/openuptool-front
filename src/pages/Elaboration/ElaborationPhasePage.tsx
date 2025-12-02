@@ -30,7 +30,10 @@ export function ElaborationPhasePage() {
     const [modalMode, setModalMode] = useState<ModalMode>({ type: "none" });
     const [showValidation, setShowValidation] = useState(false);
 
-    console.log('🚀 ElaborationPhasePage loaded - Artifacts:', artifacts.length);
+    console.log(
+        "🚀 ElaborationPhasePage loaded - Artifacts:",
+        artifacts.length
+    );
 
     const handleCreate = async (data: CreateElaborationArtifactInput) => {
         await elaborationService.createArtifact(projectId!, data);
@@ -113,7 +116,9 @@ export function ElaborationPhasePage() {
                         onClick={handleValidate}
                         disabled={validating}
                     >
-                        {validating ? "Validando..." : "Validar fase de Elaboración"}
+                        {validating
+                            ? "Validando..."
+                            : "Validar fase de Elaboración"}
                     </button>
                     <button
                         className="btn btn-primary"

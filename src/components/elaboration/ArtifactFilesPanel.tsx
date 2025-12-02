@@ -23,9 +23,7 @@ export function ArtifactFilesPanel({ artifactId }: ArtifactFilesPanelProps) {
             setFiles(data);
         } catch (err) {
             setError(
-                err instanceof Error
-                    ? err.message
-                    : "Error al cargar archivos"
+                err instanceof Error ? err.message : "Error al cargar archivos"
             );
         } finally {
             setLoading(false);
@@ -39,7 +37,10 @@ export function ArtifactFilesPanel({ artifactId }: ArtifactFilesPanelProps) {
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!fileInputRef.current?.files || fileInputRef.current.files.length === 0) {
+        if (
+            !fileInputRef.current?.files ||
+            fileInputRef.current.files.length === 0
+        ) {
             setError("Seleccione al menos un archivo");
             return;
         }
@@ -59,9 +60,7 @@ export function ArtifactFilesPanel({ artifactId }: ArtifactFilesPanelProps) {
             }
         } catch (err) {
             setError(
-                err instanceof Error
-                    ? err.message
-                    : "Error al subir archivos"
+                err instanceof Error ? err.message : "Error al subir archivos"
             );
         } finally {
             setUploading(false);
@@ -122,7 +121,9 @@ export function ArtifactFilesPanel({ artifactId }: ArtifactFilesPanelProps) {
                     </table>
                 </div>
             ) : (
-                <p className="no-files">No hay archivos asociados a este artefacto.</p>
+                <p className="no-files">
+                    No hay archivos asociados a este artefacto.
+                </p>
             )}
 
             <form onSubmit={handleUpload} className="upload-form">

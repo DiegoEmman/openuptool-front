@@ -21,9 +21,7 @@ export function useValidateElaborationPhase(projectId: string) {
             return result;
         } catch (err) {
             const errorMsg =
-                err instanceof Error
-                    ? err.message
-                    : "Error al validar la fase";
+                err instanceof Error ? err.message : "Error al validar la fase";
             setError(errorMsg);
             throw err;
         } finally {

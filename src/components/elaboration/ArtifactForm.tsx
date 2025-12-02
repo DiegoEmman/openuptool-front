@@ -16,7 +16,10 @@ interface ArtifactFormProps {
 }
 
 const ELABORATION_ARTIFACT_TYPES = [
-    { value: "UseCaseModel_Detailed", label: "Modelo de Casos de Uso Detallado" },
+    {
+        value: "UseCaseModel_Detailed",
+        label: "Modelo de Casos de Uso Detallado",
+    },
     { value: "DomainModel", label: "Modelo de Dominio" },
     { value: "SupplementaryRequirements", label: "Requisitos Suplementarios" },
     { value: "NonFunctionalRequirements", label: "Requisitos No Funcionales" },
@@ -69,7 +72,9 @@ export function ArtifactForm({
             await onSubmit(formData);
         } catch (err) {
             setError(
-                err instanceof Error ? err.message : "Error al guardar el artefacto"
+                err instanceof Error
+                    ? err.message
+                    : "Error al guardar el artefacto"
             );
         } finally {
             setSubmitting(false);
@@ -123,7 +128,10 @@ export function ArtifactForm({
                     id="description"
                     value={formData.description}
                     onChange={(e) =>
-                        setFormData({ ...formData, description: e.target.value })
+                        setFormData({
+                            ...formData,
+                            description: e.target.value,
+                        })
                     }
                     placeholder="Ingrese una descripción detallada"
                     rows={4}
@@ -151,7 +159,10 @@ export function ArtifactForm({
                         type="checkbox"
                         checked={formData.required}
                         onChange={(e) =>
-                            setFormData({ ...formData, required: e.target.checked })
+                            setFormData({
+                                ...formData,
+                                required: e.target.checked,
+                            })
                         }
                         disabled={submitting}
                     />
@@ -178,8 +189,8 @@ export function ArtifactForm({
                     {submitting
                         ? "Guardando..."
                         : mode === "create"
-                        ? "Crear Artefacto"
-                        : "Guardar Cambios"}
+                          ? "Crear Artefacto"
+                          : "Guardar Cambios"}
                 </button>
             </div>
         </form>

@@ -15,12 +15,12 @@ export function useElaborationArtifacts(projectId: string) {
         try {
             setLoading(true);
             setError(null);
-            console.log('🔍 Fetching artifacts for project:', projectId);
+            console.log("🔍 Fetching artifacts for project:", projectId);
             const data = await elaborationService.getArtifacts(projectId);
-            console.log('✅ Artifacts received:', data.length, 'items');
+            console.log("✅ Artifacts received:", data.length, "items");
             setArtifacts(data);
         } catch (err) {
-            console.error('❌ Error loading artifacts:', err);
+            console.error("❌ Error loading artifacts:", err);
             setError(
                 err instanceof Error
                     ? err.message

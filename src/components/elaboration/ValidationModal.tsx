@@ -31,36 +31,45 @@ export function ValidationModal({ result, onClose }: ValidationModalProps) {
                     {allowAdvance ? (
                         <div className="validation-success">
                             <p>
-                                Todos los artefactos obligatorios están cumplidos.
-                                La fase de Elaboración es válida y está lista para avanzar.
+                                Todos los artefactos obligatorios están
+                                cumplidos. La fase de Elaboración es válida y
+                                está lista para avanzar.
                             </p>
                         </div>
                     ) : (
                         <div className="validation-error">
                             <p className="error-message-main">
-                                Faltan artefactos obligatorios para completar la fase de
-                                Elaboración.
+                                Faltan artefactos obligatorios para completar la
+                                fase de Elaboración.
                             </p>
 
                             {missingRequiredArtifacts.length > 0 && (
                                 <div className="missing-artifacts">
                                     <h3>Artefactos faltantes:</h3>
                                     <ul>
-                                        {missingRequiredArtifacts.map((artifact) => (
-                                            <li key={artifact.id}>
-                                                <strong>{artifact.title}</strong>
-                                                <div className="artifact-details">
-                                                    <span className="artifact-type">
-                                                        Tipo: {artifact.type}
-                                                    </span>
-                                                    <span
-                                                        className={`artifact-status status-${artifact.status}`}
-                                                    >
-                                                        Estado: {getStatusLabel(artifact.status)}
-                                                    </span>
-                                                </div>
-                                            </li>
-                                        ))}
+                                        {missingRequiredArtifacts.map(
+                                            (artifact) => (
+                                                <li key={artifact.id}>
+                                                    <strong>
+                                                        {artifact.title}
+                                                    </strong>
+                                                    <div className="artifact-details">
+                                                        <span className="artifact-type">
+                                                            Tipo:{" "}
+                                                            {artifact.type}
+                                                        </span>
+                                                        <span
+                                                            className={`artifact-status status-${artifact.status}`}
+                                                        >
+                                                            Estado:{" "}
+                                                            {getStatusLabel(
+                                                                artifact.status
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                </li>
+                                            )
+                                        )}
                                     </ul>
                                 </div>
                             )}
@@ -78,9 +87,7 @@ export function ValidationModal({ result, onClose }: ValidationModalProps) {
     );
 }
 
-function getStatusLabel(
-    status: "pending" | "in_review" | "delivered"
-): string {
+function getStatusLabel(status: "pending" | "in_review" | "delivered"): string {
     const labels = {
         pending: "Pendiente",
         in_review: "En revisión",
