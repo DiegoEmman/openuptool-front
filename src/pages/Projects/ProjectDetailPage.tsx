@@ -142,6 +142,7 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
                     <Tab label="Resumen" />
                     <Tab label="Plan del Proyecto" />
                     <Tab label="Incepción" />
+                    <Tab label="Elaboración" />
                     <Tab label="Iteraciones" />
                     <Tab label="Equipo" />
                 </Tabs>
@@ -247,6 +248,26 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
                 )}
                 {tab === 3 && (
                     <Box>
+                        <Typography variant="h5" sx={{ mb: 3 }}>
+                            Fase de Elaboración
+                        </Typography>
+                        <Card sx={{ p: 3, textAlign: "center" }}>
+                            <Typography variant="body1" sx={{ mb: 2 }}>
+                                Gestiona los artefactos de la fase de Elaboración del proyecto
+                            </Typography>
+                            <Button
+                                component={Link}
+                                to={`/projects/${projectId}/elaboration`}
+                                variant="contained"
+                                size="large"
+                            >
+                                Ir a Elaboración
+                            </Button>
+                        </Card>
+                    </Box>
+                )}
+                {tab === 4 && (
+                    <Box>
                         <Stack direction="row" gap={2} mb={2}>
                             <Button
                                 variant="contained"
@@ -280,7 +301,7 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
                         />
                     </Box>
                 )}
-                {tab === 4 && (
+                {tab === 5 && (
                     <Box>
                         <Stack direction="row" gap={2} mb={3}>
                             <Button

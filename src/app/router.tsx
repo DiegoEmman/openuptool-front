@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import { ProjectsListPage } from "../pages/Projects/ProjectsListPage";
 import { NewProjectPage } from "../pages/Projects/NewProjectPage";
 import { ProjectDetailPage } from "../pages/Projects/ProjectDetailPage";
+import { ElaborationPhasePage } from "../pages/Elaboration/ElaborationPhasePage";
 import { LoginPage } from "../pages/Login";
 import { ProtectedRoute } from "../components/common/ProtectedRoute";
 
@@ -37,6 +38,14 @@ const router = createBrowserRouter([
         element: (
             <ProtectedRoute>
                 <ProjectDetailPage />
+            </ProtectedRoute>
+        ),
+    },
+    {
+        path: "/projects/:projectId/elaboration",
+        element: (
+            <ProtectedRoute>
+                <ElaborationPhasePage />
             </ProtectedRoute>
         ),
     },
