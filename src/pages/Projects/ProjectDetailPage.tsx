@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
 import { projectService } from "../../services/projectService";
 import { planService } from "../../services/planService";
 import { artifactCatalogService } from "../../services/artifactCatalogService";
@@ -36,10 +36,9 @@ import { IterationForm } from "../../components/iterations/IterationForm";
 import { IterationsTable } from "../../components/iterations/IterationsTable";
 import { InviteUserModal } from "../../components/invitations/InviteUserModal";
 import { InvitationsList } from "../../components/invitations/InvitationsList";
-
-interface ProjectDetailPageProps {
-    projectId: string;
-}
+import { ProjectProgressSummary } from "../../components/plan/ProjectProgressSummary";
+import { iterationProgressService } from "../../services/iterationProgressService";
+import type { IterationSummary } from "../../types/iterationProgress";
 
 function formatDate(dateString: string | undefined): string {
     if (!dateString) return "-";
@@ -48,7 +47,8 @@ function formatDate(dateString: string | undefined): string {
     return `${day}/${month}/${year}`;
 }
 
-export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
+export function ProjectDetailPage() {
+    const { id: projectId } = useParams<{ id: string }>();
     const [project, setProject] = useState<Project | undefined>();
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState(0);
@@ -62,6 +62,9 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
     const [artifacts, setArtifacts] = useState<Artifact[]>([]);
     const [iterations, setIterations] = useState<Iteration[]>([]);
     const [showInviteModal, setShowInviteModal] = useState(false);
+    const [iterationSummaries, setIterationSummaries] = useState<
+        IterationSummary[]
+    >([]);
 
     useEffect(() => {
         if (!projectId) return;
@@ -73,12 +76,29 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
             artifactService.getArtifacts(projectId, phase),
             iterationService.getIterations(projectId),
         ])
-            .then(([proj, pln, types, arts, iters]) => {
+            .then(async ([proj, pln, types, arts, iters]) => {
                 setProject(proj);
                 setPlan(pln);
                 setArtifactTypes(types);
                 setArtifacts(arts);
                 setIterations(iters);
+
+                // Load iteration summaries for progress tracking
+                if (iters.length > 0) {
+                    const summaries = await Promise.all(
+                        iters.map((iter) =>
+                            iterationProgressService
+                                .getSummary(iter.id)
+                                .catch(() => null)
+                        )
+                    );
+                    setIterationSummaries(
+                        summaries.filter(
+                            (s) => s !== null
+                        ) as IterationSummary[]
+                    );
+                }
+
                 setLoading(false);
             })
             .catch((error) => {
@@ -143,7 +163,9 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
                     <Tab label="Plan del Proyecto" />
                     <Tab label="Incepción" />
                     <Tab label="Elaboración" />
+                    <Tab label="Construcción" />
                     <Tab label="Iteraciones" />
+                    <Tab label="Testing" />
                     <Tab label="Equipo" />
                 </Tabs>
                 {tab === 0 && (
@@ -171,6 +193,13 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
                                 </Typography>
                             </CardContent>
                         </Card>
+
+                        {iterationSummaries.length > 0 && (
+                            <ProjectProgressSummary
+                                projectId={project.id}
+                                iterations={iterationSummaries}
+                            />
+                        )}
                     </Box>
                 )}
                 {tab === 1 && (
@@ -269,6 +298,28 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
                 )}
                 {tab === 4 && (
                     <Box>
+                        <Typography variant="h5" sx={{ mb: 3 }}>
+                            Fase de Construcción
+                        </Typography>
+                        <Card sx={{ p: 3, textAlign: "center" }}>
+                            <Typography variant="body1" sx={{ mb: 2 }}>
+                                Gestiona los artefactos de la fase de
+                                Construcción: código fuente, casos de prueba,
+                                resultados y actividades de iteración
+                            </Typography>
+                            <Button
+                                component={Link}
+                                to={`/projects/${projectId}/construction`}
+                                variant="contained"
+                                size="large"
+                            >
+                                Ir a Construcción
+                            </Button>
+                        </Card>
+                    </Box>
+                )}
+                {tab === 5 && (
+                    <Box>
                         <Stack direction="row" gap={2} mb={2}>
                             <Button
                                 variant="contained"
@@ -302,7 +353,28 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
                         />
                     </Box>
                 )}
-                {tab === 5 && (
+                {tab === 6 && (
+                    <Box>
+                        <Typography variant="h5" sx={{ mb: 3 }}>
+                            Testing y Defectos
+                        </Typography>
+                        <Card sx={{ p: 3, textAlign: "center" }}>
+                            <Typography variant="body1" sx={{ mb: 2 }}>
+                                Gestiona ejecuciones de pruebas, resultados y
+                                defectos del proyecto
+                            </Typography>
+                            <Button
+                                component={Link}
+                                to={`/projects/${projectId}/testing`}
+                                variant="contained"
+                                size="large"
+                            >
+                                Ir a Testing
+                            </Button>
+                        </Card>
+                    </Box>
+                )}
+                {tab === 7 && (
                     <Box>
                         <Stack direction="row" gap={2} mb={3}>
                             <Button

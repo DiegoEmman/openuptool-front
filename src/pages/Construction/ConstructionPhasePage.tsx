@@ -16,13 +16,15 @@ import {
     Breadcrumbs,
 } from "@mui/material";
 import { ArtifactCreateForm } from "../../components/artifacts/ArtifactCreateForm";
-import { PhaseArtifactsView } from "../../components/artifacts/PhaseArtifactsView";
+import { ConstructionArtifactsView } from "../../components/artifacts/ConstructionArtifactsView";
 
-interface ElaborationPhasePageProps {
+interface ConstructionPhasePageProps {
     projectId: string;
 }
 
-export function ElaborationPhasePage({ projectId }: ElaborationPhasePageProps) {
+export function ConstructionPhasePage({
+    projectId,
+}: ConstructionPhasePageProps) {
     const [artifacts, setArtifacts] = useState<Artifact[]>([]);
     const [artifactTypes, setArtifactTypes] = useState<ArtifactType[]>([]);
     const [loading, setLoading] = useState(true);
@@ -41,16 +43,16 @@ export function ElaborationPhasePage({ projectId }: ElaborationPhasePageProps) {
                 setError(null);
 
                 const [artifactsData, typesData] = await Promise.all([
-                    artifactService.getArtifacts(projectId, "ELABORATION"),
+                    artifactService.getArtifacts(projectId, "CONSTRUCTION"),
                     artifactCatalogService.getArtifactTypesByPhase(
-                        "ELABORATION"
+                        "CONSTRUCTION"
                     ),
                 ]);
 
                 setArtifacts(artifactsData);
                 setArtifactTypes(typesData);
             } catch (err) {
-                console.error("Error loading elaboration data:", err);
+                console.error("Error loading construction data:", err);
                 setError(
                     err instanceof Error
                         ? err.message
@@ -74,7 +76,7 @@ export function ElaborationPhasePage({ projectId }: ElaborationPhasePageProps) {
         try {
             const result = await artifactService.validatePhase(
                 projectId,
-                "ELABORATION"
+                "CONSTRUCTION"
             );
 
             setValidationResult(result);
@@ -131,7 +133,7 @@ export function ElaborationPhasePage({ projectId }: ElaborationPhasePageProps) {
                     >
                         Proyecto
                     </Link>
-                    <Typography color="text.primary">Elaboración</Typography>
+                    <Typography color="text.primary">Construcción</Typography>
                 </Breadcrumbs>
 
                 <Stack
@@ -140,7 +142,7 @@ export function ElaborationPhasePage({ projectId }: ElaborationPhasePageProps) {
                     alignItems="center"
                     mb={3}
                 >
-                    <Typography variant="h4">Fase de Elaboración</Typography>
+                    <Typography variant="h4">Fase de Construcción</Typography>
                     <Stack direction="row" spacing={2}>
                         <Button
                             variant="outlined"
@@ -161,7 +163,7 @@ export function ElaborationPhasePage({ projectId }: ElaborationPhasePageProps) {
                     <Box mb={3}>
                         <ArtifactCreateForm
                             projectId={projectId!}
-                            phaseId="ELABORATION"
+                            phaseId="CONSTRUCTION"
                             types={artifactTypes}
                             onCreated={() => {
                                 setShowCreateForm(false);
@@ -174,11 +176,12 @@ export function ElaborationPhasePage({ projectId }: ElaborationPhasePageProps) {
 
                 {artifacts.length === 0 ? (
                     <Alert severity="info">
-                        No hay artefactos registrados en la fase de Elaboración.
-                        Haz clic en "Agregar Artefacto" para crear uno.
+                        No hay artefactos registrados en la fase de
+                        Construcción. Haz clic en "Agregar Artefacto" para crear
+                        uno.
                     </Alert>
                 ) : (
-                    <PhaseArtifactsView
+                    <ConstructionArtifactsView
                         artifacts={artifacts}
                         projectId={projectId!}
                         onUpdate={handleRefresh}
@@ -188,7 +191,7 @@ export function ElaborationPhasePage({ projectId }: ElaborationPhasePageProps) {
                 <PhaseValidationDialog
                     open={showValidationDialog}
                     onClose={() => setShowValidationDialog(false)}
-                    phaseName="Elaboración"
+                    phaseName="Construcción"
                     result={validationResult}
                 />
             </Container>
@@ -196,4 +199,4 @@ export function ElaborationPhasePage({ projectId }: ElaborationPhasePageProps) {
     );
 }
 
-export default ElaborationPhasePage;
+export default ConstructionPhasePage;

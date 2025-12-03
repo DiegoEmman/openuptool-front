@@ -13,10 +13,13 @@ import {
     MenuItem,
     IconButton,
     Collapse,
+    Button,
 } from "@mui/material";
+import { TrendingUp as TrendingUpIcon } from "@mui/icons-material";
 import { iterationService } from "../../services/iterationService";
 import { useAuth } from "../../contexts/AuthContext";
 import { IterationScopeManager } from "./IterationScopeManager";
+import { Link } from "react-router";
 
 function formatDate(dateString: string | undefined): string {
     if (!dateString) return "-";
@@ -71,6 +74,7 @@ export function IterationsTable({ iterations, projectId, onUpdate }: Props) {
                             <TableCell>Fechas</TableCell>
                             <TableCell>Estado</TableCell>
                             <TableCell>Objetivo</TableCell>
+                            <TableCell align="right">Seguimiento</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -131,6 +135,17 @@ export function IterationsTable({ iterations, projectId, onUpdate }: Props) {
                                         )}
                                     </TableCell>
                                     <TableCell>{i.objective || "-"}</TableCell>
+                                    <TableCell align="right">
+                                        <Button
+                                            component={Link}
+                                            to={`/projects/${projectId}/iterations/${i.id}`}
+                                            size="small"
+                                            startIcon={<TrendingUpIcon />}
+                                            variant="outlined"
+                                        >
+                                            Ver Avance
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell
@@ -158,7 +173,7 @@ export function IterationsTable({ iterations, projectId, onUpdate }: Props) {
                         ))}
                         {data.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={6} align="center">
+                                <TableCell colSpan={7} align="center">
                                     Sin iteraciones
                                 </TableCell>
                             </TableRow>

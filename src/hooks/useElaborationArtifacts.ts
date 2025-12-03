@@ -10,23 +10,41 @@ export function useElaborationArtifacts(projectId: string) {
     const [error, setError] = useState<string | null>(null);
 
     const fetchArtifacts = useCallback(async () => {
-        if (!projectId) return;
+        if (!projectId) {
+            console.warn("⚠️ [useElaborationArtifacts] No projectId provided");
+            return;
+        }
 
         try {
+            console.log("🔄 [useElaborationArtifacts] Starting fetch...");
+            console.log("🔍 [useElaborationArtifacts] Project ID:", projectId);
+
             setLoading(true);
             setError(null);
-            console.log("🔍 Fetching artifacts for project:", projectId);
+
             const data = await elaborationService.getArtifacts(projectId);
-            console.log("✅ Artifacts received:", data.length, "items");
+
+            console.log(
+                "✅ [useElaborationArtifacts] Fetch complete:",
+                data.length,
+                "artifacts"
+            );
             setArtifacts(data);
         } catch (err) {
-            console.error("❌ Error loading artifacts:", err);
-            setError(
+            console.error("❌ [useElaborationArtifacts] Fetch failed:", err);
+            const errorMessage =
                 err instanceof Error
                     ? err.message
-                    : "Error al cargar artefactos"
+                    : "Error al cargar artefactos";
+            console.error(
+                "❌ [useElaborationArtifacts] Error message:",
+                errorMessage
             );
+            setError(errorMessage);
         } finally {
+            console.log(
+                "🏁 [useElaborationArtifacts] Setting loading to false"
+            );
             setLoading(false);
         }
     }, [projectId]);

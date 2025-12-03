@@ -11,3 +11,7 @@ export * from "./userStory";
 export * from "./iterationScope";
 export * from "./invitation";
 export * from "./notification";
+export * from "./defect";
+export * from "./testExecution";
+export * from "./iterationProgress";
+export * from "./artifactVersion";
