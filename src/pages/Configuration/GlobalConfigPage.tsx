@@ -270,34 +270,6 @@ export function GlobalConfigPage() {
                                 </CardContent>
                             </Card>
                         )}
-
-                        <Alert severity="info" sx={{ mt: 3 }}>
-                            <Typography variant="body2">
-                                <strong>✅ HU-018 Implementado</strong>
-                                <br />
-                                <br />
-                                <strong>Funcionalidades disponibles:</strong>
-                                <br />
-                                ✅ CRUD completo de Roles con permisos
-                                <br />
-                                ✅ CRUD completo de Etapas (Fases del proceso)
-                                <br />
-                                ✅ CRUD completo de Tipos de Artefactos por fase
-                                <br />
-                                ✅ CRUD completo de Flujos de Trabajo con
-                                estados
-                                <br />
-                                ✅ CRUD completo de Campos Personalizados
-                                <br />
-                                ✅ Historial de cambios con rollback
-                                <br />
-                                ✅ Versionado y configuración por defecto
-                                <br />
-                                <br />
-                                Navega por las pestañas para gestionar cada tipo
-                                de configuración.
-                            </Typography>
-                        </Alert>
                     </>
                 )}
             </Container>
