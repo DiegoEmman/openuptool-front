@@ -3,3 +3,5 @@ export * from "./Projects/NewProjectPage";
 export * from "./Projects/ProjectDetailPage";
 export * from "./Login";
 export * from "./Elaboration";
+export * from "./Workflows";
+export * from "./Configuration/TemplateManagementPage";

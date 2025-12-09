@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
     Box,
     Button,
@@ -21,7 +21,9 @@ import {
     Code as CodeIcon,
 } from "@mui/icons-material";
 import type { ArtifactType, PhaseCode } from "../../types/artifact";
+import type { Workflow } from "../../types/workflow";
 import { artifactService } from "../../services/artifactService";
+import { workflowService } from "../../services/workflowService";
 
 interface Props {
     projectId: string;
@@ -47,7 +49,20 @@ export function ArtifactCreateForm({
     const [file, setFile] = useState<File | null>(null);
     const [fileCategory, setFileCategory] = useState<string>("");
     const [repositoryUrl, setRepositoryUrl] = useState("");
+    const [workflowId, setWorkflowId] = useState<string>("");
+    const [workflows, setWorkflows] = useState<Workflow[]>([]);
     const [submitting, setSubmitting] = useState(false);
+
+    useEffect(() => {
+        loadWorkflows();
+    }, [projectId]);
+
+    const loadWorkflows = async () => {
+        const data = await workflowService.getByProject(projectId);
+        if (data) {
+            setWorkflows(data);
+        }
+    };
 
     const selectedType = useMemo(
         () => types.find((t) => t.id === artifactTypeId),
@@ -107,6 +122,7 @@ export function ArtifactCreateForm({
                 file: file || undefined,
                 fileCategory: fileCategory || undefined,
                 repositoryUrl: repositoryUrl || undefined,
+                workflowId: workflowId || undefined,
             });
             onCreated();
         } catch (error) {
@@ -190,6 +206,40 @@ export function ArtifactCreateForm({
                             onChange={(e) => setAuthor(e.target.value)}
                             placeholder="Nombre del responsable"
                         />
+                    </Grid>
+
+                    {/* Workflow */}
+                    <Grid item xs={12} md={6}>
+                        <TextField
+                            select
+                            label="Flujo de Trabajo (Opcional)"
+                            fullWidth
+                            value={workflowId}
+                            onChange={(e) => setWorkflowId(e.target.value)}
+                            helperText="Asocia este artefacto a un flujo de trabajo para gestionar su ciclo de vida"
+                        >
+                            <MenuItem value="">
+                                <em>Sin flujo de trabajo</em>
+                            </MenuItem>
+                            {workflows.map((w) => (
+                                <MenuItem key={w.id} value={w.id}>
+                                    <Stack
+                                        direction="row"
+                                        alignItems="center"
+                                        spacing={1}
+                                    >
+                                        <span>{w.name}</span>
+                                        {w.isActive && (
+                                            <Chip
+                                                label="Activo"
+                                                size="small"
+                                                color="success"
+                                            />
+                                        )}
+                                    </Stack>
+                                </MenuItem>
+                            ))}
+                        </TextField>
                     </Grid>
 
                     {/* Obligatorio */}

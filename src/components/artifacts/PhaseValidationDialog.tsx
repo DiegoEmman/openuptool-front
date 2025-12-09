@@ -22,12 +22,21 @@ import {
     Description as DocIcon,
 } from "@mui/icons-material";
 
+interface MissingArtifact {
+    artifactId: string;
+    title: string;
+    artifactType: string;
+    status: string;
+    hasVersions: boolean;
+}
+
 interface ValidationResult {
     canAdvance: boolean;
-    missingMandatoryArtifacts: string[];
-    totalMandatory: number;
-    totalOptional: number;
-    completedMandatory: number;
+    phase: string;
+    totalMandatoryArtifacts: number;
+    completedMandatoryArtifacts: number;
+    missingArtifacts: MissingArtifact[];
+    message?: string;
 }
 
 interface PhaseValidationDialogProps {
@@ -45,11 +54,11 @@ export function PhaseValidationDialog({
 }: PhaseValidationDialogProps) {
     if (!result) return null;
 
-    const missingCount = result.missingMandatoryArtifacts.length;
+    const missingCount = result.missingArtifacts?.length || 0;
     const completedPercentage =
-        result.totalMandatory > 0
+        result.totalMandatoryArtifacts > 0
             ? Math.round(
-                  (result.completedMandatory / result.totalMandatory) * 100
+                  (result.completedMandatoryArtifacts / result.totalMandatoryArtifacts) * 100
               )
             : 100;
 
@@ -117,7 +126,7 @@ export function PhaseValidationDialog({
                             }}
                         >
                             <Typography variant="h4" color="success.main">
-                                {result.completedMandatory}
+                                {result.completedMandatoryArtifacts}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 Completados
@@ -164,23 +173,12 @@ export function PhaseValidationDialog({
                             size="small"
                         />
                         <Typography variant="caption" color="text.secondary">
-                            ({result.completedMandatory} de{" "}
-                            {result.totalMandatory} obligatorios)
+                            ({result.completedMandatoryArtifacts} de{" "}
+                            {result.totalMandatoryArtifacts} obligatorios)
                         </Typography>
                     </Box>
 
-                    {result.totalOptional > 0 && (
-                        <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ mt: 1, display: "block" }}
-                        >
-                            💡 Hay {result.totalOptional} artefacto
-                            {result.totalOptional !== 1 ? "s" : ""} opcional
-                            {result.totalOptional !== 1 ? "es" : ""} que no
-                            bloquean el avance
-                        </Typography>
-                    )}
+
                 </Box>
 
                 {/* Lista de artefactos faltantes */}
@@ -191,15 +189,15 @@ export function PhaseValidationDialog({
                             Artefactos Obligatorios Faltantes
                         </Typography>
                         <List dense>
-                            {result.missingMandatoryArtifacts.map(
-                                (artifactName, idx) => (
-                                    <ListItem key={idx}>
+                            {result.missingArtifacts.map(
+                                (artifact) => (
+                                    <ListItem key={artifact.artifactId}>
                                         <ListItemIcon>
                                             <CancelIcon color="error" />
                                         </ListItemIcon>
                                         <ListItemText
-                                            primary={artifactName}
-                                            secondary="Pendiente de entrega"
+                                            primary={artifact.title}
+                                            secondary={`${artifact.artifactType} - ${artifact.status}`}
                                         />
                                     </ListItem>
                                 )

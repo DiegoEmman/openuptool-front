@@ -1,4 +1,4 @@
-import type { CreateProjectInput, Project } from "../types/project";
+import type { AuditLog, CreateProjectInput, Project } from "../types/project";
 import { httpClient } from "./api/httpClient";
 
 export const projectService = {
@@ -42,5 +42,31 @@ export const projectService = {
             console.error("Error updating project:", error);
             return undefined;
         }
+    },
+
+    async archive(id: string): Promise<Project> {
+        return httpClient<Project>(`/projects/${id}/archive`, {
+            method: "POST",
+        });
+    },
+
+    async unarchive(id: string): Promise<Project> {
+        return httpClient<Project>(`/projects/${id}/unarchive`, {
+            method: "POST",
+        });
+    },
+
+    async getArchivedProjects(): Promise<Project[]> {
+        return httpClient<Project[]>("/projects/archived");
+    },
+
+    async deletePermanently(id: string): Promise<void> {
+        return httpClient<void>(`/projects/${id}/permanent?confirm=true`, {
+            method: "DELETE",
+        });
+    },
+
+    async getAuditLogs(id: string): Promise<AuditLog[]> {
+        return httpClient<AuditLog[]>(`/projects/${id}/audit-logs`);
     },
 };

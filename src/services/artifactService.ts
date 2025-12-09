@@ -7,6 +7,12 @@ import type {
     CreateVersionInput,
     VersionHistory,
     VersionComparison,
+    ValidateReassignmentInput,
+    ReassignmentValidationResult,
+    ReassignArtifactInput,
+    ReassignWorkflowInput,
+    ReassignmentResult,
+    MovementHistory,
 } from "../types/artifact";
 import { httpClient } from "./api/httpClient";
 import { ENV } from "../config/environment";
@@ -43,6 +49,7 @@ export const artifactService = {
             formData.append("repositoryVersion", input.repositoryVersion);
         if (input.buildNumber)
             formData.append("buildNumber", input.buildNumber);
+        if (input.workflowId) formData.append("workflowId", input.workflowId);
         if (input.file) formData.append("file", input.file);
 
         const token =
@@ -316,5 +323,54 @@ export const artifactService = {
         }
 
         return response.blob();
+    },
+
+    // Métodos para reasignación de artefactos (HU-020)
+    async validateReassignment(
+        projectId: string,
+        input: ValidateReassignmentInput
+    ): Promise<ReassignmentValidationResult> {
+        return httpClient<ReassignmentValidationResult>(
+            `/projects/${projectId}/artifacts/validate-reassignment`,
+            {
+                method: "POST",
+                body: JSON.stringify(input),
+            }
+        );
+    },
+
+    async reassignArtifact(
+        projectId: string,
+        input: ReassignArtifactInput
+    ): Promise<ReassignmentResult> {
+        return httpClient<ReassignmentResult>(
+            `/projects/${projectId}/artifacts/reassign-phase`,
+            {
+                method: "POST",
+                body: JSON.stringify(input),
+            }
+        );
+    },
+
+    async reassignWorkflow(
+        projectId: string,
+        input: ReassignWorkflowInput
+    ): Promise<ReassignmentResult> {
+        return httpClient<ReassignmentResult>(
+            `/projects/${projectId}/artifacts/reassign-workflow`,
+            {
+                method: "POST",
+                body: JSON.stringify(input),
+            }
+        );
+    },
+
+    async getMovementHistory(
+        projectId: string,
+        artifactId: string
+    ): Promise<MovementHistory> {
+        return httpClient<MovementHistory>(
+            `/projects/${projectId}/artifacts/${artifactId}/movement-history`
+        );
     },
 };

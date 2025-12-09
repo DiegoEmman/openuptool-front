@@ -14,11 +14,18 @@ import {
     IconButton,
     Collapse,
     Button,
+    Tooltip,
 } from "@mui/material";
-import { TrendingUp as TrendingUpIcon } from "@mui/icons-material";
+import {
+    TrendingUp as TrendingUpIcon,
+    Settings as SettingsIcon,
+    CheckCircle as CheckCircleIcon,
+} from "@mui/icons-material";
 import { iterationService } from "../../services/iterationService";
 import { useAuth } from "../../contexts/AuthContext";
 import { IterationScopeManager } from "./IterationScopeManager";
+import { IterationCapacityForm } from "./IterationCapacityForm";
+import { IterationVelocityForm } from "./IterationVelocityForm";
 import { Link } from "react-router";
 
 function formatDate(dateString: string | undefined): string {
@@ -37,6 +44,12 @@ export function IterationsTable({ iterations, projectId, onUpdate }: Props) {
     const { hasRole } = useAuth();
     const canEditStatus = hasRole(["Admin", "Manager"]);
     const [expandedIteration, setExpandedIteration] = useState<string | null>(
+        null
+    );
+    const [editingCapacity, setEditingCapacity] = useState<Iteration | null>(
+        null
+    );
+    const [editingVelocity, setEditingVelocity] = useState<Iteration | null>(
         null
     );
 
@@ -73,8 +86,9 @@ export function IterationsTable({ iterations, projectId, onUpdate }: Props) {
                             <TableCell>Fase</TableCell>
                             <TableCell>Fechas</TableCell>
                             <TableCell>Estado</TableCell>
+                            <TableCell>Capacidad</TableCell>
                             <TableCell>Objetivo</TableCell>
-                            <TableCell align="right">Seguimiento</TableCell>
+                            <TableCell align="right">Acciones</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -134,22 +148,98 @@ export function IterationsTable({ iterations, projectId, onUpdate }: Props) {
                                             />
                                         )}
                                     </TableCell>
+                                    <TableCell>
+                                        {i.plannedCapacityHours ||
+                                        i.teamSize ||
+                                        i.plannedPoints ? (
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    gap: 0.5,
+                                                }}
+                                            >
+                                                {i.plannedCapacityHours && (
+                                                    <Typography variant="caption">
+                                                        ⏱️{" "}
+                                                        {i.plannedCapacityHours}
+                                                        h
+                                                    </Typography>
+                                                )}
+                                                {i.teamSize && (
+                                                    <Typography variant="caption">
+                                                        👥 {i.teamSize} miembros
+                                                    </Typography>
+                                                )}
+                                                {i.plannedPoints && (
+                                                    <Typography variant="caption">
+                                                        📊 {i.plannedPoints} pts
+                                                    </Typography>
+                                                )}
+                                            </Box>
+                                        ) : (
+                                            <Typography
+                                                variant="caption"
+                                                color="text.secondary"
+                                            >
+                                                Sin configurar
+                                            </Typography>
+                                        )}
+                                    </TableCell>
                                     <TableCell>{i.objective || "-"}</TableCell>
                                     <TableCell align="right">
-                                        <Button
-                                            component={Link}
-                                            to={`/projects/${projectId}/iterations/${i.id}`}
-                                            size="small"
-                                            startIcon={<TrendingUpIcon />}
-                                            variant="outlined"
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                gap: 1,
+                                                justifyContent: "flex-end",
+                                            }}
                                         >
-                                            Ver Avance
-                                        </Button>
+                                            {canEditStatus && (
+                                                <>
+                                                    <Tooltip title="Configurar capacidad">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() =>
+                                                                setEditingCapacity(
+                                                                    i
+                                                                )
+                                                            }
+                                                            color="primary"
+                                                        >
+                                                            <SettingsIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Tooltip title="Registrar velocidad (puntos completados)">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() =>
+                                                                setEditingVelocity(
+                                                                    i
+                                                                )
+                                                            }
+                                                            color="success"
+                                                        >
+                                                            <CheckCircleIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </>
+                                            )}
+                                            <Button
+                                                component={Link}
+                                                to={`/projects/${projectId}/iterations/${i.id}`}
+                                                size="small"
+                                                startIcon={<TrendingUpIcon />}
+                                                variant="outlined"
+                                            >
+                                                Ver Avance
+                                            </Button>
+                                        </Box>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell
-                                        colSpan={6}
+                                        colSpan={8}
                                         style={{
                                             paddingBottom: 0,
                                             paddingTop: 0,
@@ -173,7 +263,7 @@ export function IterationsTable({ iterations, projectId, onUpdate }: Props) {
                         ))}
                         {data.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={7} align="center">
+                                <TableCell colSpan={8} align="center">
                                     Sin iteraciones
                                 </TableCell>
                             </TableRow>
@@ -188,6 +278,30 @@ export function IterationsTable({ iterations, projectId, onUpdate }: Props) {
         <Box>
             {section("Iteraciones activas", active)}
             {section("Iteraciones pasadas", past)}
+
+            {editingCapacity && (
+                <IterationCapacityForm
+                    open={true}
+                    onClose={() => setEditingCapacity(null)}
+                    onSuccess={() => {
+                        setEditingCapacity(null);
+                        onUpdate?.();
+                    }}
+                    iteration={editingCapacity}
+                />
+            )}
+
+            {editingVelocity && (
+                <IterationVelocityForm
+                    open={true}
+                    onClose={() => setEditingVelocity(null)}
+                    onSuccess={() => {
+                        setEditingVelocity(null);
+                        onUpdate?.();
+                    }}
+                    iteration={editingVelocity}
+                />
+            )}
         </Box>
     );
 }

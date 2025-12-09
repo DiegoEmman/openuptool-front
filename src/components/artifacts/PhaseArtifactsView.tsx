@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { Artifact } from "../../types/artifact";
+import type { Artifact, PhaseCode } from "../../types/artifact";
 import {
     Table,
     TableHead,
@@ -19,6 +19,8 @@ import {
     Switch,
     FormControlLabel,
     Tooltip,
+    Tabs,
+    Tab,
 } from "@mui/material";
 import {
     Description as DocIcon,
@@ -28,9 +30,12 @@ import {
     Folder as FolderIcon,
     CheckCircle as CheckIcon,
     Cancel as CancelIcon,
+    SwapHoriz as ReassignIcon,
 } from "@mui/icons-material";
 import { InlineArtifactEditor } from "./InlineArtifactEditor";
 import { ArtifactVersionHistory } from "./ArtifactVersionHistory";
+import { ArtifactWorkflowPanel } from "./ArtifactWorkflowPanel";
+import { ReassignArtifactDialog } from "./ReassignArtifactDialog";
 import { artifactService } from "../../services/artifactService";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -45,8 +50,21 @@ export function PhaseArtifactsView({ artifacts, projectId, onUpdate }: Props) {
     const [expandedArtifact, setExpandedArtifact] = useState<string | null>(
         null
     );
+    const [expandedTab, setExpandedTab] = useState<number>(0);
+    const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
+    const [selectedArtifact, setSelectedArtifact] = useState<Artifact | null>(
+        null
+    );
     const { hasRole } = useAuth();
     const canEdit = hasRole(["Admin", "Manager", "Developer"]);
+
+    // Fases disponibles para reasignación
+    const availablePhases: { code: PhaseCode; name: string }[] = [
+        { code: "INCEPTION", name: "Inception" },
+        { code: "ELABORATION", name: "Elaboration" },
+        { code: "CONSTRUCTION", name: "Construction" },
+        { code: "TRANSITION", name: "Transition" },
+    ];
 
     const filtered = artifacts.filter(
         (a) => filter === "ALL" || a.status === filter
@@ -79,6 +97,20 @@ export function PhaseArtifactsView({ artifacts, projectId, onUpdate }: Props) {
             console.error("Error updating mandatory status:", error);
             alert("Error al actualizar el estado obligatorio/opcional");
         }
+    };
+
+    const handleOpenReassignDialog = (artifact: Artifact) => {
+        setSelectedArtifact(artifact);
+        setReassignDialogOpen(true);
+    };
+
+    const handleCloseReassignDialog = () => {
+        setReassignDialogOpen(false);
+        setSelectedArtifact(null);
+    };
+
+    const handleReassigned = () => {
+        onUpdate?.();
     };
 
     const handleDownload = async (artifactId: string, fileName: string) => {
@@ -154,6 +186,7 @@ export function PhaseArtifactsView({ artifacts, projectId, onUpdate }: Props) {
                         <TableCell>Estado</TableCell>
                         <TableCell>Archivos</TableCell>
                         <TableCell>Contenido</TableCell>
+                        {canEdit && <TableCell>Acciones</TableCell>}
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -317,10 +350,26 @@ export function PhaseArtifactsView({ artifacts, projectId, onUpdate }: Props) {
                                 <TableCell>
                                     <InlineArtifactEditor artifact={a} />
                                 </TableCell>
+                                {canEdit && (
+                                    <TableCell>
+                                        <Tooltip title="Reasignar artefacto a otra fase">
+                                            <Button
+                                                size="small"
+                                                variant="outlined"
+                                                startIcon={<ReassignIcon />}
+                                                onClick={() =>
+                                                    handleOpenReassignDialog(a)
+                                                }
+                                            >
+                                                Reasignar
+                                            </Button>
+                                        </Tooltip>
+                                    </TableCell>
+                                )}
                             </TableRow>
                             <TableRow>
                                 <TableCell
-                                    colSpan={7}
+                                    colSpan={canEdit ? 8 : 7}
                                     style={{ paddingBottom: 0, paddingTop: 0 }}
                                 >
                                     <Collapse
@@ -329,11 +378,37 @@ export function PhaseArtifactsView({ artifacts, projectId, onUpdate }: Props) {
                                         unmountOnExit
                                     >
                                         <Box sx={{ margin: 2 }}>
-                                            <ArtifactVersionHistory
-                                                projectId={projectId}
-                                                artifactId={a.id}
-                                                artifactTitle={a.title}
-                                            />
+                                            <Tabs
+                                                value={expandedTab}
+                                                onChange={(_, v) =>
+                                                    setExpandedTab(v)
+                                                }
+                                                sx={{
+                                                    borderBottom: 1,
+                                                    borderColor: "divider",
+                                                    mb: 2,
+                                                }}
+                                            >
+                                                <Tab label="Versiones" />
+                                                <Tab label="Workflow" />
+                                            </Tabs>
+
+                                            {expandedTab === 0 && (
+                                                <ArtifactVersionHistory
+                                                    projectId={projectId}
+                                                    artifactId={a.id}
+                                                    artifactTitle={a.title}
+                                                />
+                                            )}
+
+                                            {expandedTab === 1 && (
+                                                <ArtifactWorkflowPanel
+                                                    artifactId={a.id}
+                                                    artifactName={a.title}
+                                                    projectId={projectId}
+                                                    onUpdate={onUpdate}
+                                                />
+                                            )}
                                         </Box>
                                     </Collapse>
                                 </TableCell>
@@ -342,13 +417,25 @@ export function PhaseArtifactsView({ artifacts, projectId, onUpdate }: Props) {
                     ))}
                     {filtered.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={canEdit ? 8 : 7} align="center">
                                 Sin artefactos
                             </TableCell>
                         </TableRow>
                     )}
                 </TableBody>
             </Table>
+
+            {/* Diálogo de reasignación */}
+            {selectedArtifact && (
+                <ReassignArtifactDialog
+                    artifact={selectedArtifact}
+                    projectId={projectId}
+                    availablePhases={availablePhases}
+                    open={reassignDialogOpen}
+                    onClose={handleCloseReassignDialog}
+                    onReassigned={handleReassigned}
+                />
+            )}
         </Box>
     );
 }

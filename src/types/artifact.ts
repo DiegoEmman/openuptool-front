@@ -84,6 +84,7 @@ export interface CreateArtifactInput {
     repositoryUrl?: string;
     repositoryVersion?: string;
     buildNumber?: string;
+    workflowId?: string;
     file?: File;
 }
 
@@ -141,4 +142,66 @@ export interface VersionComparison {
     version1: ArtifactVersion;
     version2: ArtifactVersion;
     differences: VersionDifferences;
+}
+
+// Tipos para reasignación de artefactos (HU-020)
+export interface ValidateReassignmentInput {
+    artifactId: string;
+    toPhaseId?: string;
+    toWorkflowId?: string;
+}
+
+export interface ReassignmentViolation {
+    rule: string;
+    message: string;
+    severity: "WARNING" | "ERROR";
+}
+
+export interface ReassignmentValidationResult {
+    isValid: boolean;
+    violations: ReassignmentViolation[];
+    canProceed: boolean;
+}
+
+export interface ReassignArtifactInput {
+    artifactId: string;
+    toPhaseId: string;
+    reason: string;
+    forceReassignment?: boolean;
+}
+
+export interface ReassignWorkflowInput {
+    artifactId: string;
+    toWorkflowId: string;
+    reason: string;
+}
+
+export interface ReassignmentResult {
+    success: boolean;
+    message: string;
+    artifactId: string;
+    fromPhaseId?: string;
+    toPhaseId?: string;
+    fromWorkflowId?: string;
+    toWorkflowId?: string;
+    movedAt: string;
+}
+
+export interface MovementHistoryEntry {
+    id: string;
+    artifactId: string;
+    fromPhaseId?: string;
+    toPhaseId?: string;
+    fromWorkflowId?: string;
+    toWorkflowId?: string;
+    reason: string;
+    movedBy: string;
+    movedAt: string;
+}
+
+export interface MovementHistory {
+    artifactId: string;
+    artifactTitle: string;
+    totalMovements: number;
+    movements: MovementHistoryEntry[];
 }

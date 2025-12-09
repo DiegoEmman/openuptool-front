@@ -9,15 +9,20 @@ import {
     Menu,
     MenuItem,
 } from "@mui/material";
-import { AccountCircle, ExitToApp } from "@mui/icons-material";
+import {
+    AccountCircle,
+    ExitToApp,
+    Settings as SettingsIcon,
+} from "@mui/icons-material";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { NotificationsBell } from "../notifications/NotificationsBell";
 
 export const Navbar: React.FC = () => {
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    const { user, logout, hasRole } = useAuth();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const isAdmin = hasRole(["Admin"]);
 
     const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -46,6 +51,17 @@ export const Navbar: React.FC = () => {
 
                 {user && (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                        {isAdmin && (
+                            <Button
+                                color="inherit"
+                                startIcon={<SettingsIcon />}
+                                onClick={() => navigate("/configuration")}
+                                sx={{ display: { xs: "none", md: "flex" } }}
+                            >
+                                Configuración
+                            </Button>
+                        )}
+
                         <Typography
                             variant="body2"
                             sx={{ display: { xs: "none", sm: "block" } }}
@@ -86,6 +102,34 @@ export const Navbar: React.FC = () => {
                                     {user.email}
                                 </Typography>
                             </MenuItem>
+                            {isAdmin && [
+                                <MenuItem
+                                    key="config"
+                                    onClick={() => {
+                                        handleClose();
+                                        navigate("/configuration");
+                                    }}
+                                >
+                                    <SettingsIcon
+                                        sx={{ mr: 1 }}
+                                        fontSize="small"
+                                    />
+                                    Configuración Global
+                                </MenuItem>,
+                                <MenuItem
+                                    key="templates"
+                                    onClick={() => {
+                                        handleClose();
+                                        navigate("/configuration/templates");
+                                    }}
+                                >
+                                    <SettingsIcon
+                                        sx={{ mr: 1 }}
+                                        fontSize="small"
+                                    />
+                                    Plantillas OpenUP
+                                </MenuItem>,
+                            ]}
                             <MenuItem onClick={handleLogout}>
                                 <ExitToApp sx={{ mr: 1 }} fontSize="small" />
                                 Cerrar Sesión
