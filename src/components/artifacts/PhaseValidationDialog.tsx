@@ -58,7 +58,9 @@ export function PhaseValidationDialog({
     const completedPercentage =
         result.totalMandatoryArtifacts > 0
             ? Math.round(
-                  (result.completedMandatoryArtifacts / result.totalMandatoryArtifacts) * 100
+                  (result.completedMandatoryArtifacts /
+                      result.totalMandatoryArtifacts) *
+                      100
               )
             : 100;
 
@@ -177,8 +179,6 @@ export function PhaseValidationDialog({
                             {result.totalMandatoryArtifacts} obligatorios)
                         </Typography>
                     </Box>
-
-
                 </Box>
 
                 {/* Lista de artefactos faltantes */}
@@ -189,19 +189,17 @@ export function PhaseValidationDialog({
                             Artefactos Obligatorios Faltantes
                         </Typography>
                         <List dense>
-                            {result.missingArtifacts.map(
-                                (artifact) => (
-                                    <ListItem key={artifact.artifactId}>
-                                        <ListItemIcon>
-                                            <CancelIcon color="error" />
-                                        </ListItemIcon>
-                                        <ListItemText
-                                            primary={artifact.title}
-                                            secondary={`${artifact.artifactType} - ${artifact.status}`}
-                                        />
-                                    </ListItem>
-                                )
-                            )}
+                            {result.missingArtifacts.map((artifact) => (
+                                <ListItem key={artifact.artifactId}>
+                                    <ListItemIcon>
+                                        <CancelIcon color="error" />
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={artifact.title}
+                                        secondary={`${artifact.artifactType} - ${artifact.status}`}
+                                    />
+                                </ListItem>
+                            ))}
                         </List>
                     </>
                 )}
