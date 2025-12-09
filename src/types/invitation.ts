@@ -15,6 +15,6 @@ export interface ProjectInvitation {
 
 export interface CreateInvitation {
     projectId: string;
-    invitedEmail: string;
+    email: string;
     roleId: string;
 }

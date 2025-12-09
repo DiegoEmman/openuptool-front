@@ -64,7 +64,7 @@ export function InviteUserModal({
         try {
             await invitationService.create({
                 projectId,
-                invitedEmail: email,
+                email: email,
                 roleId,
             });
             alert("Invitación enviada exitosamente");
